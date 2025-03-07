@@ -1,7 +1,7 @@
 import boto3
-import sagemaker
 from sagemaker.huggingface import HuggingFaceModel
 
+import sagemaker
 
 S3_MODEL_NAME = "microsoft/MiniLM-L12-H384-uncased"  # Can be replaced
 SAGE_MAKER_MODEL_NAME = None  # Can be replaced
@@ -24,7 +24,7 @@ if __name__ == "__main__":
 
     # create model from S3 containing parameters and overloaded script
     model = HuggingFaceModel(
-        name=f"test-v1",
+        name="test-v1",
         model_data=f"s3://some-bucket/models/{S3_MODEL_NAME}.tar.gz",
         transformers_version="4.17.0",
         pytorch_version="1.10.2",

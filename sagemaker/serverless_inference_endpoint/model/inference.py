@@ -26,5 +26,5 @@ def predict_fn(data: dict[str, str], model_and_tokenizer: tuple) -> str:
         outputs = model.generate(inputs["input_ids"])
 
     # remove input text by slicing and decode without special tokens
-    citation = tokenizer.decode(outputs.squeeze()[len(tokens.squeeze()) :], skip_special_tokens=True)
+    citation = tokenizer.decode(outputs.squeeze()[len(tokens.squeeze()) :], skip_special_tokens=True)  # noqa
     return citation.translate(str.maketrans("", "", "\n\t\r")).strip()  # remove newlines and trailing spaces
