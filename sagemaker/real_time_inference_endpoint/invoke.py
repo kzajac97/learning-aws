@@ -16,7 +16,7 @@ if __name__ == "__main__":
         CustomAttributes=custom_attributes,
         ContentType=content_type,
         Accept=accept,
-        Body=payload
+        Body=payload,
     )
 
     print(response)

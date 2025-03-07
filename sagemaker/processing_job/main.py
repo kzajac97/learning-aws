@@ -1,5 +1,4 @@
-from sagemaker.processing import ScriptProcessor, ProcessingInput, ProcessingOutput
-
+from sagemaker.processing import ProcessingInput, ProcessingOutput, ScriptProcessor
 
 INPUT_DIR = "/opt/ml/processing/input/"
 OUTPUT_DIR = "/opt/ml/processing/output"
