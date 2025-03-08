@@ -1,6 +1,7 @@
 import json
 import logging
 import math
+from datetime import datetime as dt
 from typing import Final
 
 from sns import notify
@@ -31,7 +32,9 @@ def compute_temperature(r: float) -> float:
 def compose_response(sensor_id: str, temperature: float, status: str) -> dict:
     return {
         "status_code": 200,
-        "body": json.dumps({"sensor_id": sensor_id, "temperature": temperature, "status": status}),
+        "body": json.dumps(
+            {"sensor_id": sensor_id, "temperature": temperature, "status": status, "timestamp": dt.now().isoformat()}
+        ),
     }
 
 
