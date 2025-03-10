@@ -22,7 +22,8 @@ resource "aws_lambda_function" "sensor_lambda" {
 
   environment {
     variables = {
-      SNS_TOPIC_ARN = aws_sns_topic.sensor_notifications.arn
+      SNS_TOPIC_ARN         = aws_sns_topic.sensor_notifications.arn
+      SENSOR_REGISTRY_TABLE = aws_dynamodb_table.sensor_registry.name
     }
   }
 }
