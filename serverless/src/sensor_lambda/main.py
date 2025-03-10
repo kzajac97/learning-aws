@@ -1,9 +1,12 @@
 import json
 import logging
 import math
+import os
 from datetime import datetime as dt
 from typing import Final
 
+import boto3
+from dynamodb import SensorRegistryClient
 from sns import notify
 
 # constants for the Steinhart-Hart equation
@@ -14,6 +17,7 @@ MIN_R: Final[float] = float(1)
 MAX_R: Final[float] = float(20_000)
 
 logging.basicConfig(level=logging.INFO)
+dynamo_db_client = boto3.client("dynamodb")
 
 
 def to_celcius(temperature_in_kelvin: float) -> float:
@@ -40,13 +44,21 @@ def compose_response(sensor_id: str, temperature: float, status: str) -> dict:
 
 def lambda_handler(event, _):
     logging.info(f"Received event: {event}")
+    client = SensorRegistryClient(dynamo_db_client, table_name=os.getenv("SENSOR_REGISTRY_TABLE"))
+
     try:
         sensor_id = str(event["sensor_id"])
         r = float(event["value"])
 
+        if not client.exists(sensor_id):
+            # assume sensor is working ok, when it is first registered
+            client.put_item(sensor_id, working_ok=True)
+
         if MIN_R > r or r > MAX_R:
-            # TODO: Store sensor as broken and notify the user
-            ...
+            client.update_item(sensor_id, working_ok=False)  # mark sensor as not working
+
+        if not client.get_item(sensor_id).get("working_ok"):
+            return {"status_code": 204}  # sensor is not working, ignore the event
 
         temperature = compute_temperature(r)
         temperature = to_celcius(temperature)
