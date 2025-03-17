@@ -20,6 +20,7 @@ resource "aws_lambda_function" "sensor_lambda" {
     variables = {
       SNS_TOPIC_ARN         = aws_sns_topic.sensor_notifications.arn
       SENSOR_REGISTRY_TABLE = aws_dynamodb_table.sensor_registry.name
+      SENSOR_QUEUE_URL      = aws_sqs_queue.sensor_queue.id
     }
   }
 }
