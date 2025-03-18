@@ -10,7 +10,7 @@ class Context:
     region: str
     sensor_registry_table: str
     sns_topic_arn: str
-    sqs_queue_url: str
+    sqs_url: str
     dynamo_db_client: "boto3.client.dynamodb"
     sqs_client: "boto3.client.sqs"
 
@@ -23,7 +23,7 @@ class Context:
             region=region,
             sensor_registry_table=env["SENSOR_REGISTRY_TABLE"],
             sns_topic_arn=env["SNS_TOPIC_ARN"],
-            sqs_queue_url=env["SQS_QUEUE_URL"],
+            sqs_url=env["SQS_URL"],
             dynamo_db_client=boto3.client("dynamodb", region_name=region),
             sqs_client=boto3.client("sqs", region_name=region),
         )

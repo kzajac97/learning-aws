@@ -14,13 +14,15 @@ resource "aws_lambda_function" "sensor_lambda" {
   role             = data.aws_iam_role.main_role.arn
   handler          = "main.lambda_handler"
   runtime          = "python3.13"
+  timeout          = 10
   source_code_hash = filebase64sha256(data.archive_file.lambda_source_code.output_path)
 
   environment {
     variables = {
+      ENV                   = "dev"
       SNS_TOPIC_ARN         = aws_sns_topic.sensor_notifications.arn
       SENSOR_REGISTRY_TABLE = aws_dynamodb_table.sensor_registry.name
-      SENSOR_QUEUE_URL      = aws_sqs_queue.sensor_queue.id
+      SQS_URL               = aws_sqs_queue.sensor_queue.id
     }
   }
 }

@@ -1,9 +1,7 @@
 import json
 from datetime import datetime as dt
 
-from context import Context
-
-from serverless.src.sensor_lambda.context import SensorStatus
+from context import Context, SensorStatus
 
 
 def send_message(context: Context, sensor_id: str, temperature: float, status: SensorStatus):
@@ -14,4 +12,4 @@ def send_message(context: Context, sensor_id: str, temperature: float, status: S
         "timestamp": dt.now().isoformat(),
     }
 
-    context.sqs_client.send_message(QueueUrl=context.sqs_queue_url, MessageBody=json.dumps(message))
+    context.sqs_client.send_message(QueueUrl=context.sqs_url, MessageBody=json.dumps(message))
