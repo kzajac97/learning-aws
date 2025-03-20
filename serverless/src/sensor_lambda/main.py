@@ -7,9 +7,10 @@ import dynamodb
 import sensor
 import sns
 import sqs
+from logger import setup_logging
 from context import Context
 
-logging.basicConfig(level=logging.INFO)
+setup_logging()
 context = Context.from_dict(os.environ)
 
 
