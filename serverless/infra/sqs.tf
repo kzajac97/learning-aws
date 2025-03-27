@@ -32,6 +32,7 @@ resource "aws_lambda_function" "consumer_lambda" {
       ENV            = "dev"
       MAX_BATCH_SIZE = 100
       SQS_URL        = aws_sqs_queue.sensor_queue.id
+      BUCKET_NAME    = aws_s3_bucket.sensor_data.bucket
     }
   }
 }

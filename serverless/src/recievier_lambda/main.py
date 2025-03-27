@@ -1,14 +1,20 @@
-import os
-import logging
+import enum
 import itertools
+import logging
+import os
 
+import awswrangler as wr
 import pandas as pd
-
 from context import Context
 from logger import setup_logging
 
 setup_logging()
 context = Context.from_dict(os.environ)
+
+
+class Source(enum.Enum):
+    s3: str = "S3"
+    sqs: str = "SQS"
 
 
 def batched(iterable, n: int):
@@ -41,10 +47,15 @@ def receive_message(context: Context) -> list:
 
 
 def lambda_handler(event, _):
-    messages = receive_message(context)
-    logging.info(f"Received {len(messages)} messages from SQS")
+    if event["source"] == Source.s3.value:
+        logging.info(f"Received event from S3")
+        data = wr.s3.read_csv(f"s3://{context.bucket_name}/{event['key']}")
 
-    data = pd.DataFrame(messages)
+    elif event["source"] != Source.sqs.value:
+        messages = receive_message(context)
+        logging.info(f"Received {len(messages)} messages from SQS")
+        data = pd.DataFrame(messages)
+
     grouped = data.groupby("location_id")
 
     batches = []
