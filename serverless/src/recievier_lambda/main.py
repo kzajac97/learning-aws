@@ -1,5 +1,5 @@
 import enum
-import itertools
+import json
 import logging
 import os
 
@@ -11,19 +11,13 @@ from logger import setup_logging
 setup_logging()
 context = Context.from_dict(os.environ)
 
+MAX_PAYLOAD_SIZE = 262144  # 256 KB -> hard limit from Step Functions
+BUFFER = int(0.1 * MAX_PAYLOAD_SIZE)  # 10% buffer to be safe
+
 
 class Source(enum.Enum):
     s3: str = "S3"
     sqs: str = "SQS"
-
-
-def batched(iterable, n: int):
-    it = iter(iterable)
-    while True:
-        batch = list(itertools.islice(it, n))
-        if not batch:
-            break
-        yield batch
 
 
 def receive_message(context: Context) -> list:
@@ -48,8 +42,8 @@ def receive_message(context: Context) -> list:
 
 def lambda_handler(event, _):
     if event["source"] == Source.s3.value:
-        logging.info(f"Received event from S3")
-        data = wr.s3.read_csv(f"s3://{context.bucket_name}/{event['key']}")
+        logging.info("Received event from S3")
+        data = wr.s3.read_csv(f"s3://{context.input_bucket}/{event['key']}")
 
     elif event["source"] != Source.sqs.value:
         messages = receive_message(context)
@@ -58,10 +52,19 @@ def lambda_handler(event, _):
 
     grouped = data.groupby("location_id")
 
-    batches = []
-    for location_id, group in grouped:
-        group = group[["temperature", "timestamp"]].to_dict("records")
-        batches.extend(batched(group, n=context.max_batch_size))
-
+    batches = [group[["temperature", "timestamp"]] for _, group in grouped]
     logging.info(f"Created {len(batches)} batches")
-    return {"status_code": 200, "batches": batches}
+
+    payload = {"status_code": 200, "source": "event", "batches": [batch.to_dict("records") for batch in batches]}
+    payload_size = len(json.dumps(payload).encode("utf-8"))
+
+    if payload_size > (MAX_PAYLOAD_SIZE - BUFFER):
+        s3_keys = []
+        for index, batch in enumerate(batches):  # write batches to S3, each as CSV file
+            path = f"s3://{context.payload_bucket}/batch-{index}.csv"
+            wr.s3.to_csv(batch, path)
+            s3_keys.append(path)
+
+        payload = {"status_code": 200, "batches": s3_keys, "source": "s3"}
+
+    return payload
