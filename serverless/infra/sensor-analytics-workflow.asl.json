@@ -1,0 +1,71 @@
+{
+  "Comment": "State machine used for sensor data analytics",
+  "StartAt": "prepare-data",
+  "States": {
+    "prepare-data": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "OutputPath": "$.Payload",
+      "Parameters": {
+        "FunctionName": "${receiver_lambda_arn}",
+        "Payload.$": "$"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "BackoffRate": 2,
+          "JitterStrategy": "FULL"
+        }
+      ],
+      "Next": "ProcessBatches"
+    },
+    "ProcessBatches": {
+      "Type": "Map",
+      "ItemsPath": "$.batches",
+      "Parameters": {
+        "batch.$": "$$.Map.Item.Value",
+        "source.$": "$.source"
+      },
+      "Iterator": {
+        "StartAt": "batch-compute",
+        "States": {
+          "batch-compute": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Parameters": {
+              "FunctionName": "${reporter_lambda_arn}",
+              "Payload": {
+                "batch.$": "$.batch",
+                "source.$": "$.source"
+              }
+            },
+            "OutputPath": "$.Payload",
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.ServiceException",
+                  "Lambda.AWSLambdaException",
+                  "Lambda.SdkClientException",
+                  "Lambda.TooManyRequestsException"
+                ],
+                "IntervalSeconds": 1,
+                "MaxAttempts": 3,
+                "BackoffRate": 2,
+                "JitterStrategy": "FULL"
+              }
+            ],
+            "End": true
+          }
+        }
+      },
+      "End": true
+    }
+  }
+}

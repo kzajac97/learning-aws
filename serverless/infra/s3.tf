@@ -18,7 +18,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "example_lifecycle_policy" {
     }
 
     filter {
-    prefix = "" # Applies to all objects in the bucket
-  }
+      prefix = "" # Applies to all objects in the bucket
+    }
   }
 }

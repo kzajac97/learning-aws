@@ -1,7 +1,7 @@
 data "archive_file" "lambda_source_code" {
   type        = "zip"
   source_dir  = "${path.module}/../src/sensor_lambda"
-  output_path = "${path.module}/sensor_lambda.zip"
+  output_path = "${path.module}/.src/sensor_lambda.zip"
 }
 
 resource "aws_sns_topic" "sensor_notifications" {
@@ -9,13 +9,14 @@ resource "aws_sns_topic" "sensor_notifications" {
 }
 
 resource "aws_lambda_function" "sensor_lambda" {
-  filename         = data.archive_file.lambda_source_code.output_path
-  function_name    = "sensor_lambda"
-  role             = data.aws_iam_role.main_role.arn
-  handler          = "main.lambda_handler"
-  runtime          = "python3.13"
-  timeout          = 10
-  source_code_hash = filebase64sha256(data.archive_file.lambda_source_code.output_path)
+  filename                       = data.archive_file.lambda_source_code.output_path
+  function_name                  = "sensor_lambda"
+  role                           = data.aws_iam_role.main_role.arn
+  handler                        = "main.lambda_handler"
+  runtime                        = "python3.13"
+  timeout                        = 10
+  source_code_hash               = filebase64sha256(data.archive_file.lambda_source_code.output_path)
+  reserved_concurrent_executions = 4
 
   environment {
     variables = {
