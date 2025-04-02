@@ -18,6 +18,7 @@ BUFFER = int(0.1 * MAX_PAYLOAD_SIZE)  # 10% buffer to be safe
 class Source(enum.Enum):
     s3: str = "S3"
     sqs: str = "SQS"
+    event: str = "EVENT"
 
 
 def receive_message(context: Context) -> list:
@@ -40,7 +41,7 @@ def receive_message(context: Context) -> list:
     return messages
 
 
-def lambda_handler(event, _):
+def handler(event, _):
     if event["source"] == Source.s3.value:
         logging.info("Received event from S3")
         data = wr.s3.read_csv(f"s3://{context.input_bucket}/{event['key']}")
@@ -55,7 +56,8 @@ def lambda_handler(event, _):
     batches = [group[["temperature", "timestamp"]] for _, group in grouped]
     logging.info(f"Created {len(batches)} batches")
 
-    payload = {"status_code": 200, "source": "event", "batches": [batch.to_dict("records") for batch in batches]}
+    json_batches = [batch.to_dict("records") for batch in batches]
+    payload = {"status_code": 200, "source": Source.event.value, "batches": json_batches}
     payload_size = len(json.dumps(payload).encode("utf-8"))
 
     if payload_size > (MAX_PAYLOAD_SIZE - BUFFER):
@@ -65,6 +67,6 @@ def lambda_handler(event, _):
             wr.s3.to_csv(batch, path)
             s3_keys.append(path)
 
-        payload = {"status_code": 200, "batches": s3_keys, "source": "s3"}
+        payload = {"status_code": 200, "batches": s3_keys, "source": Source.s3.value}
 
     return payload

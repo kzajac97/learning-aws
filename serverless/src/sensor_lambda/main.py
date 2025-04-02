@@ -37,7 +37,7 @@ def lambda_handler(event, _):
     status = sensor.get_status(temperature)
 
     logging.info(f"Sensor {sensor_id} has temperature {temperature} and status {status.value} at {location_id}")
-    logging.info(f"Forwarding message to SQS")
+    logging.info("Forwarding message to SQS")
     sqs.send_message(context, sensor_id, temperature, status)
 
     if status == sensor.SensorStatus.TEMPERATURE_CRITICAL:
