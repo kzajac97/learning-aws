@@ -56,12 +56,12 @@ resource "aws_glue_catalog_table" "raw_glue_table" {
     output_format = "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat"
 
     ser_de_info {
-      name                 = "raw_dps_ingest_data_serde"
+      name                  = "raw_dps_ingest_data_serde"
       serialization_library = "org.apache.hadoop.hive.serde2.OpenCSVSerde"
       parameters = {
-        "field.delim" = ","
-        "quoteChar"   = "\""
-        "escapeChar"  = "\\"
+        "field.delim"   = ","
+        "quoteChar"     = "\""
+        "escapeChar"    = "\\"
         "separatorChar" = ","
       }
     }
@@ -81,7 +81,7 @@ resource "aws_glue_catalog_table" "processed_glue_table" {
     output_format = "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat"
 
     ser_de_info {
-      name                 = "dps_processed_data_serde"
+      name                  = "dps_processed_data_serde"
       serialization_library = "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe"
     }
 
