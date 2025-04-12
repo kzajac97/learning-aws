@@ -83,7 +83,8 @@ class Context:
 def transform(data: DataFrame, context: Context) -> DataFrame:
     # step 1: drop unwanted columns and nans
     data = data.select(list(RAW_COLUMNS_TO_KEEP))  # PySpark can only work with list columns, not tuples
-    data = data.na.drop()
+    data = data.replace("NA", None).replace("", None)
+    data = data.na.drop(how="any")
 
     # step 2: filter out rows where the count of languages/databases is 10 or more
     for split_column in SPLIT_COLUMNS:
@@ -132,4 +133,5 @@ context.glue.write_dynamic_frame.from_catalog(
     frame=transformed_data,
     database=context.database,
     table_name=context.output_table_name,
+    additional_options={"partitionKeys": [context.source_label]},
 )
