@@ -12,10 +12,10 @@ resource "aws_s3_bucket" "glue_assets" {
 
 resource "aws_s3_object" "sparklogs" {
   bucket = aws_s3_bucket.glue_assets.bucket
-  key    = "sparklogs"
+  key    = "sparklogs/"
 }
 
 resource "aws_s3_object" "glue_scripts" {
   bucket = aws_s3_bucket.glue_assets.bucket
-  key    = "scripts"
+  key    = "scripts/"
 }

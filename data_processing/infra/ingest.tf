@@ -1,23 +1,13 @@
 resource "aws_s3_object" "glue_etl_script_source" {
   bucket = aws_s3_bucket.glue_assets.bucket
-  key    = "${aws_s3_object.glue_scripts.key}/ingest.py"
+  key    = "${aws_s3_object.glue_scripts.key}ingest.py" # trailing / is part of aws_s3_object.glue_scripts.key
   source = "${path.module}/../src/ingest.py"
+
+  source_hash = filemd5("${path.module}/../src/ingest.py")
 
   lifecycle {
     create_before_destroy = true
   }
-}
-
-resource "null_resource" "force_recreate" {
-  triggers = {
-    always_run = timestamp()
-  }
-
-  provisioner "local-exec" {
-    command = "echo 'Forcing S3 object recreation'"
-  }
-
-  depends_on = [aws_s3_object.glue_etl_script_source]
 }
 
 resource "aws_glue_job" "glue_ingest" {
