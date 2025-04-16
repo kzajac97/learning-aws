@@ -46,10 +46,13 @@ def handler(event, _):
         logging.info("Received event from S3")
         data = wr.s3.read_csv(f"s3://{context.input_bucket}/{event['key']}")
 
-    elif event["source"] != Source.sqs.value:
+    elif event["source"] == Source.sqs.value:
         messages = receive_message(context)
         logging.info(f"Received {len(messages)} messages from SQS")
         data = pd.DataFrame(messages)
+    else:
+        logging.error(f"Unknown source: {event['source']}")
+        raise RuntimeError(f"Unknown source: {event['source']}")
 
     grouped = data.groupby("location_id")
 
