@@ -10,7 +10,7 @@ resource "aws_sns_topic" "sensor_notifications" {
 
 resource "aws_lambda_function" "sensor_lambda" {
   filename                       = data.archive_file.lambda_source_code.output_path
-  function_name                  = "sensor_lambda"
+  function_name                  = "sensor-lambda"
   role                           = data.aws_iam_role.main_role.arn
   handler                        = "main.lambda_handler"
   runtime                        = "python3.13"
