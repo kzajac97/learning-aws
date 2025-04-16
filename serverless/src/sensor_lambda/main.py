@@ -42,7 +42,7 @@ def lambda_handler(event, _):
 
     if status == sensor.SensorStatus.TEMPERATURE_CRITICAL:
         alert = f"Sensor {sensor_id} is in critical state with temperature {temperature} at {location_id}!"
-        sns.notify(context, message=alert)
+        sns.notify(message=alert)
 
     return {
         "status_code": 200,
