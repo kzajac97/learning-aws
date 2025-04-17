@@ -18,7 +18,7 @@ class Context:
 
     @classmethod
     def from_dict(cls, env: dict) -> Self:
-        aws_profile = env["AWS_PROFILE_NAME"]
+        aws_profile = env.get("AWS_PROFILE_NAME")  # for local use
         aws_region = env["AWS_REGION"]
         session = boto3.Session(profile_name=aws_profile, region_name=aws_region)
 
