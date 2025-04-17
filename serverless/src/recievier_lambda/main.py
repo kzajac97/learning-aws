@@ -33,7 +33,7 @@ def receive_message(context: Context) -> list:
         if "Messages" not in response:
             break
         for message in response["Messages"]:
-            messages.append(message)
+            messages.append(json.loads(message["Body"]))
             context.sqs_client.delete_message(QueueUrl=context.sqs_url, ReceiptHandle=message["ReceiptHandle"])
         if len(response["Messages"]) < 10:
             break
@@ -53,6 +53,10 @@ def handler(event, _):
     else:
         logging.error(f"Unknown source: {event['source']}")
         raise RuntimeError(f"Unknown source: {event['source']}")
+
+    if data.empty:
+        logging.warning(f"Did not receive any data from {event['source']}")
+        return {"status_code": 204}
 
     grouped = data.groupby("location_id")
 
