@@ -7,7 +7,7 @@ import boto3
 @dataclasses.dataclass
 class Context:
     env: str
-    region: str
+    aws_region: str
     sensor_registry_table: str
     sns_topic_arn: str
     sqs_url: str
@@ -16,16 +16,18 @@ class Context:
 
     @classmethod
     def from_dict(cls, env: dict):
-        region = env["AWS_REGION"]
+        aws_profile = env.get("AWS_PROFILE_NAME")  # for local use
+        aws_region = env["AWS_REGION"]
+        session = boto3.Session(profile_name=aws_profile, region_name=aws_region)
 
         return cls(
             env=env["ENV"],
-            region=region,
+            aws_region=aws_region,
             sensor_registry_table=env["SENSOR_REGISTRY_TABLE"],
             sns_topic_arn=env["SNS_TOPIC_ARN"],
             sqs_url=env["SQS_URL"],
-            dynamo_db_client=boto3.client("dynamodb", region_name=region),
-            sqs_client=boto3.client("sqs", region_name=region),
+            dynamo_db_client=session.client("dynamodb", region_name=aws_region),
+            sqs_client=session.client("sqs", region_name=aws_region),
         )
 
 

@@ -33,7 +33,7 @@ def receive_message(context: Context) -> list:
         if "Messages" not in response:
             break
         for message in response["Messages"]:
-            messages.append(message)
+            messages.append(json.loads(message["Body"]))
             context.sqs_client.delete_message(QueueUrl=context.sqs_url, ReceiptHandle=message["ReceiptHandle"])
         if len(response["Messages"]) < 10:
             break
@@ -46,10 +46,17 @@ def handler(event, _):
         logging.info("Received event from S3")
         data = wr.s3.read_csv(f"s3://{context.input_bucket}/{event['key']}")
 
-    elif event["source"] != Source.sqs.value:
+    elif event["source"] == Source.sqs.value:
         messages = receive_message(context)
         logging.info(f"Received {len(messages)} messages from SQS")
         data = pd.DataFrame(messages)
+    else:
+        logging.error(f"Unknown source: {event['source']}")
+        raise RuntimeError(f"Unknown source: {event['source']}")
+
+    if data.empty:
+        logging.warning(f"Did not receive any data from {event['source']}")
+        return {"status_code": 204}
 
     grouped = data.groupby("location_id")
 
