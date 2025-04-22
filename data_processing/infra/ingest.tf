@@ -1,9 +1,9 @@
 resource "aws_s3_object" "glue_etl_script_source" {
   bucket = aws_s3_bucket.glue_assets.bucket
   key    = "${aws_s3_object.glue_scripts.key}ingest.py" # trailing / is part of aws_s3_object.glue_scripts.key
-  source = "${path.module}/../src/ingest.py"
+  source = "${path.module}/../src/glue/ingest.py"
 
-  source_hash = filemd5("${path.module}/../src/ingest.py")
+  source_hash = filemd5("${path.module}/../src/glue/ingest.py")
 
   lifecycle {
     create_before_destroy = true
