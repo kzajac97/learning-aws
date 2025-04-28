@@ -1,13 +1,9 @@
-resource "aws_s3_object" "glue_etl_script_source" {
+resource "aws_s3_object" "glue_ingest_script_source" {
   bucket = aws_s3_bucket.glue_assets.bucket
   key    = "${aws_s3_object.glue_scripts.key}ingest.py" # trailing / is part of aws_s3_object.glue_scripts.key
   source = "${path.module}/../src/glue/ingest.py"
 
   source_hash = filemd5("${path.module}/../src/glue/ingest.py")
-
-  lifecycle {
-    create_before_destroy = true
-  }
 }
 
 resource "aws_glue_job" "glue_ingest" {
@@ -23,7 +19,7 @@ resource "aws_glue_job" "glue_ingest" {
 
   command {
     name            = "glueetl"
-    script_location = "s3://${aws_s3_object.glue_scripts.bucket}/${aws_s3_object.glue_etl_script_source.key}"
+    script_location = "s3://${aws_s3_object.glue_scripts.bucket}/${aws_s3_object.glue_ingest_script_source.key}"
     python_version  = "3"
   }
 
