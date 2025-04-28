@@ -1,0 +1,76 @@
+import psycopg2
+from psycopg2 import sql
+
+from .aws import get_ssm_parameter
+
+
+class DBClient:
+    """
+    PostgreSQL manager for simple queries to support health-check script to verify the processing output.
+    """
+
+    def __init__(self, host: str, name: str, user: str, password: str, port: str = "5432"):
+        self.host = host  # RDS endpoint
+        self.name = name
+        self.user = user
+        self.password = password
+        self.port = port
+
+        self.connection = None
+
+    @classmethod
+    def from_ssm(cls, prefix: str):
+        return cls(
+            host=get_ssm_parameter(f"/{prefix}/host"),
+            name=get_ssm_parameter(f"/{prefix}/name"),
+            user=get_ssm_parameter(f"/{prefix}/user"),
+            password=get_ssm_parameter(f"/{prefix}/password"),
+            port=get_ssm_parameter(f"/{prefix}/port"),
+        )
+
+    def connect(self):
+        self.connection = psycopg2.connect(
+            host=self.host, database=self.name, user=self.user, password=self.password, port=self.port
+        )
+
+    def execute(self, sql: str):
+        if self.connection is None:
+            self.connect()
+
+        with self.connection.cursor() as cursor:
+            cursor.execute(sql)
+            self.connection.commit()
+
+    def select(self, table: str, limit: int | None = None) -> list[tuple]:
+        if self.connection is None:
+            self.connect()
+
+        with self.connection.cursor() as cursor:
+            query = sql.SQL("SELECT * FROM {}").format(sql.Identifier(table))
+            if limit:
+                query += sql.SQL(" LIMIT {}").format(sql.Placeholder())
+                cursor.execute(query, (limit,))
+            else:
+                cursor.execute(query)
+
+            return cursor.fetchall()
+
+    def list_tables(self) -> list[str]:
+        if self.connection is None:
+            self.connect()
+
+        with self.connection.cursor() as cursor:
+            query = sql.SQL("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'")
+            cursor.execute(query)
+            return [row[0] for row in cursor.fetchall()]
+
+    def get_column_names(self, table: str) -> list[str]:
+        if self.connection is None:
+            self.connect()
+
+        with self.connection.cursor() as cursor:
+            query = sql.SQL("SELECT column_name FROM information_schema.columns WHERE table_name = {}").format(
+                sql.Identifier(table)
+            )
+            cursor.execute(query)
+            return [row[0] for row in cursor.fetchall()]
