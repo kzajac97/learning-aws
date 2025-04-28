@@ -19,7 +19,7 @@ resource "aws_glue_crawler" "raw_data_crawler" {
   table_prefix  = "raw_"
 
   s3_target {
-    path = "s3://${aws_s3_bucket.data.bucket}/raw/"
+    path = "s3://${aws_s3_bucket.data.bucket}/${var.raw_data_directory}/"
   }
 
   configuration = jsonencode({
@@ -50,7 +50,7 @@ resource "aws_glue_catalog_table" "raw_glue_table" {
   database_name = aws_glue_catalog_database.data_processing_db.name
 
   storage_descriptor {
-    location = "s3://${aws_s3_bucket.data.bucket}/raw/"
+    location = "s3://${aws_s3_bucket.data.bucket}/${var.raw_data_directory}/"
 
     input_format  = "org.apache.hadoop.mapred.TextInputFormat"
     output_format = "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat"
@@ -75,7 +75,7 @@ resource "aws_glue_catalog_table" "processed_glue_table" {
   database_name = aws_glue_catalog_database.data_processing_db.name
 
   storage_descriptor {
-    location = "s3://${aws_s3_bucket.data.bucket}/processed/"
+    location = "s3://${aws_s3_bucket.data.bucket}/${var.processed_data_directory}/"
 
     input_format  = "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat"
     output_format = "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat"

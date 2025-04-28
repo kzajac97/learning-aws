@@ -1,9 +1,13 @@
+locals {
+  local_ingest_script_path = "${path.module}/../src/glue/ingest.py"
+}
+
 resource "aws_s3_object" "glue_ingest_script_source" {
   bucket = aws_s3_bucket.glue_assets.bucket
-  key    = "${aws_s3_object.glue_scripts.key}ingest.py" # trailing / is part of aws_s3_object.glue_scripts.key
-  source = "${path.module}/../src/glue/ingest.py"
+  key    = "${var.scripts_directory}/ingest.py"
+  source = local.local_ingest_script_path
 
-  source_hash = filemd5("${path.module}/../src/glue/ingest.py")
+  source_hash = filemd5(local.local_ingest_script_path)
 }
 
 resource "aws_glue_job" "glue_ingest" {
