@@ -1,7 +1,14 @@
+import boto3
 import psycopg2
 from psycopg2 import sql
 
-from .aws import get_ssm_parameter
+
+def get_ssm_parameter(name: str, client=None) -> str:
+    ssm_client = client or boto3.client("ssm")
+
+    response = ssm_client.get_parameter(Name=name, WithDecryption=True)
+    return response["Parameter"]["Value"]
+
 
 
 class DBClient:
@@ -19,13 +26,13 @@ class DBClient:
         self.connection = None
 
     @classmethod
-    def from_ssm(cls, prefix: str):
+    def from_ssm(cls, prefix: str, client):
         return cls(
-            host=get_ssm_parameter(f"/{prefix}/host"),
-            name=get_ssm_parameter(f"/{prefix}/name"),
-            user=get_ssm_parameter(f"/{prefix}/user"),
-            password=get_ssm_parameter(f"/{prefix}/password"),
-            port=get_ssm_parameter(f"/{prefix}/port"),
+            host=get_ssm_parameter(f"/{prefix}/host", client),
+            name=get_ssm_parameter(f"/{prefix}/name", client),
+            user=get_ssm_parameter(f"/{prefix}/user", client),
+            password=get_ssm_parameter(f"/{prefix}/password", client),
+            port=get_ssm_parameter(f"/{prefix}/port", client),
         )
 
     def connect(self):
