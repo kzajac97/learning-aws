@@ -42,8 +42,9 @@ resource "aws_db_instance" "postgres" {
 
   instance_class = "db.t4g.micro"
 
-  allocated_storage = 10
-  storage_type      = "gp2"
+  allocated_storage   = 10
+  storage_type        = "gp2"
+  monitoring_interval = 0
 
   username = var.db_username
   password = var.password
