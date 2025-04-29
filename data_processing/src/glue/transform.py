@@ -1,6 +1,5 @@
 import dataclasses
 import sys
-from typing import Final
 
 from awsglue.context import GlueContext
 from awsglue.job import Job
@@ -8,13 +7,6 @@ from awsglue.utils import getResolvedOptions
 from pyspark.context import SparkContext
 from pyspark.sql import DataFrame, Window
 from pyspark.sql import functions as F
-
-# glue job parameters
-GLUE_INPUTS: Final[list[str]] = [
-    "JOB_NAME",
-    "glue_database",
-    "input_glue_table_name",
-]
 
 
 @dataclasses.dataclass
@@ -24,20 +16,23 @@ class Context:
     glue_job: Job
     # args
     job_name: str
-    database: str
+    glue_database: str
     input_table_name: str
+    output_s3_dir: str
 
     @classmethod
     def from_argv(cls, argv: dict):
-        parameters = getResolvedOptions(argv, GLUE_INPUTS)
+        glue_inputs = ["JOB_NAME", "glue_database", "input_glue_table_name", "output_s3_dir"]
+        parameters = getResolvedOptions(argv, glue_inputs)
 
         return cls(
             spark=SparkContext.getOrCreate(),
             glue=GlueContext(SparkContext.getOrCreate()),
             glue_job=Job(GlueContext(SparkContext.getOrCreate())),
             job_name=parameters["JOB_NAME"],
-            database=parameters["glue_database"],
+            glue_database=parameters["glue_database"],
             input_table_name=parameters["input_glue_table_name"],
+            output_s3_dir=parameters["output_s3_dir"],
         )
 
 
@@ -113,7 +108,7 @@ def index_join_table(answers: DataFrame, join_table: DataFrame, column: str, ali
 context = Context.from_argv(sys.argv)
 
 raw_data = context.glue.create_dynamic_frame.from_catalog(
-    database=context.database,
+    database=context.glue_database,
     table_name=context.input_table_name,
 )
 # convert to Spark
@@ -122,16 +117,31 @@ dataframe = raw_data.toDF()
 dataframe = pretransform(dataframe)
 countries = create_country(dataframe)
 # create language and database tables
-lang = create_from_union(dataframe, alias="language", left="LanguageHaveWorkedWith", right="LanguageWantToWorkWith")
-db = create_from_union(dataframe, alias="database", left="DatabaseHaveWorkedWith", right="DatabaseWantToWorkWith")
+lang = create_from_union(
+    dataframe, alias="language", left="language_have_worked_with", right="language_want_to_work_with"
+)
+db = create_from_union(
+    dataframe, alias="database", left="database_have_worked_with", right="database_want_to_work_with"
+)
 # create answers table
 raw_answers = create_answers(dataframe)
 # index countries into answers
 answers = index_countries(raw_answers, countries)
 # create 4 join tables
-lah = index_join_table(dataframe, join_table=lang, column="language_have_worked_with", alias="lang", id_name="language_id")  # fmt: skip
-law = index_join_table(dataframe, join_table=lang, column="language_want_to_work_with", alias="lang", id_name="language_id")  # fmt: skip
 dah = index_join_table(dataframe, join_table=db, column="database_have_worked_with", alias="db", id_name="database_id")
 daw = index_join_table(dataframe, join_table=db, column="database_want_to_work_with", alias="db", id_name="database_id")
-# write answers
-# TODO: Write to SQL here
+lah = index_join_table(
+    dataframe, join_table=lang, column="language_have_worked_with", alias="lang", id_name="language_id"
+)
+law = index_join_table(
+    dataframe, join_table=lang, column="language_want_to_work_with", alias="lang", id_name="language_id"
+)
+# write answers to S3 -> not into Glue Data Catalog
+answers.write.parquet(f"{context.output_s3_dir}/answers", mode="overwrite")
+lang.write.parquet(f"{context.output_s3_dir}/lang", mode="overwrite")
+db.write.parquet(f"{context.output_s3_dir}/db", mode="overwrite")
+# join tables
+lah.write.parquet(f"{context.output_s3_dir}/lah", mode="overwrite")
+law.write.parquet(f"{context.output_s3_dir}/law", mode="overwrite")
+dah.write.parquet(f"{context.output_s3_dir}/dah", mode="overwrite")
+daw.write.parquet(f"{context.output_s3_dir}/daw", mode="overwrite")
