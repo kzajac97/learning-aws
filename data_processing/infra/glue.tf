@@ -70,7 +70,7 @@ resource "aws_glue_catalog_table" "raw_glue_table" {
 }
 
 resource "aws_glue_catalog_table" "processed_glue_table" {
-  name          = "processed-data"
+  name          = "processed"
   database_name = aws_glue_catalog_database.data_processing_db.name
 
   storage_descriptor {
