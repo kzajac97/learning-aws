@@ -1,4 +1,4 @@
-variable "vpn_ip" {
+variable "public_ip" {
   type        = string
   description = "Public IP of the machine to allow access to RDS"
   sensitive   = true
@@ -44,14 +44,14 @@ resource "aws_security_group_rule" "allow_ssm" {
 
 resource "aws_security_group" "rds_restricted" {
   name        = "rds-restricted-sg"
-  description = "Allow connection via VPN IP to RDS"
+  description = "Allow only personal computer to RDS"
   vpc_id      = data.aws_vpc.default.id
 
   ingress {
     from_port   = 5432 # default for PostgreSQL
     to_port     = 5432
     protocol    = "tcp"
-    cidr_blocks = ["${var.vpn_ip}/32"]
+    cidr_blocks = ["${var.public_ip}/32"]
   }
 
   # Allow all traffic within the same security group (required for Glue)
