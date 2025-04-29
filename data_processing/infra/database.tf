@@ -17,14 +17,14 @@ variable "password" {
 }
 
 resource "aws_ssm_parameter" "db_name" {
-  name = "/db/name"
-  type = "String"
+  name  = "/db/name"
+  type  = "String"
   value = var.db_name
 }
 
 resource "aws_ssm_parameter" "db_user" {
-  name = "/db/user"
-  type = "String"
+  name  = "/db/user"
+  type  = "String"
   value = var.db_username
 }
 

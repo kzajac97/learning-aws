@@ -37,4 +37,3 @@ resource "aws_glue_job" "glue_transform" {
     "--output_s3_dir"                    = "s3://${aws_s3_bucket.data.bucket}/${var.normalized_data_directory}/"
   }
 }
-

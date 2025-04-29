@@ -1,37 +1,37 @@
 variable "raw_data_directory" {
   description = "The directory where the raw data is stored"
   type        = string
-  default = "raw"
+  default     = "raw"
 }
 
 variable "processed_data_directory" {
   description = "The directory where the processed data is stored"
   type        = string
-  default = "processed"
+  default     = "processed"
 }
 
 variable "normalized_data_directory" {
   description = "The directory where the normalized data is stored"
   type        = string
-  default = "normalized"
+  default     = "normalized"
 }
 
 variable "athena_outputs_directory" {
   description = "The directory where the Athena outputs are stored"
   type        = string
-  default = "athena"
+  default     = "athena"
 }
 
 variable "logs_directory" {
-    description = "The directory where the logs are stored"
-    type        = string
-    default = "sparklogs"
+  description = "The directory where the logs are stored"
+  type        = string
+  default     = "sparklogs"
 }
 
 variable "scripts_directory" {
-    description = "The directory where the scripts are stored"
-    type        = string
-    default = "scripts"
+  description = "The directory where the scripts are stored"
+  type        = string
+  default     = "scripts"
 }
 
 resource "aws_s3_bucket" "data" {

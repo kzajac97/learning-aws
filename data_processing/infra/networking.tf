@@ -9,7 +9,7 @@ data "aws_vpc" "default" {
 }
 
 data "aws_subnet" "default" {
-  vpc_id = data.aws_vpc.default.id
+  vpc_id            = data.aws_vpc.default.id
   availability_zone = "us-east-1a"
 }
 
@@ -54,12 +54,12 @@ resource "aws_security_group" "rds_restricted" {
     cidr_blocks = ["${var.public_ip}/32"]
   }
 
-   # Allow all traffic within the same security group (required for Glue)
+  # Allow all traffic within the same security group (required for Glue)
   ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    self        = true
+    from_port = 0
+    to_port   = 0
+    protocol  = "-1"
+    self      = true
   }
 
   egress {
