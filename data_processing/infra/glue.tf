@@ -16,7 +16,6 @@ resource "aws_glue_crawler" "raw_data_crawler" {
   name          = "raw-data-crawler"
   role          = data.aws_iam_role.main_role.arn
   database_name = aws_glue_catalog_database.data_processing_db.name
-  table_prefix  = "raw_"
 
   s3_target {
     path = "s3://${aws_s3_bucket.data.bucket}/${var.raw_data_directory}/"
@@ -46,7 +45,7 @@ resource "aws_glue_crawler" "raw_data_crawler" {
 }
 
 resource "aws_glue_catalog_table" "raw_glue_table" {
-  name          = "raw_dps_ingest_data"
+  name          = "raw"
   database_name = aws_glue_catalog_database.data_processing_db.name
 
   storage_descriptor {
@@ -56,7 +55,7 @@ resource "aws_glue_catalog_table" "raw_glue_table" {
     output_format = "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat"
 
     ser_de_info {
-      name                  = "raw_dps_ingest_data_serde"
+      name                  = "raw_serde"
       serialization_library = "org.apache.hadoop.hive.serde2.OpenCSVSerde"
       parameters = {
         "field.delim"   = ","
@@ -71,7 +70,7 @@ resource "aws_glue_catalog_table" "raw_glue_table" {
 }
 
 resource "aws_glue_catalog_table" "processed_glue_table" {
-  name          = "dps_processed_data"
+  name          = "processed-data"
   database_name = aws_glue_catalog_database.data_processing_db.name
 
   storage_descriptor {
@@ -85,10 +84,6 @@ resource "aws_glue_catalog_table" "processed_glue_table" {
       serialization_library = "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe"
     }
 
-    columns {
-      name = "age"
-      type = "int"
-    }
     columns {
       name = "years_code"
       type = "int"

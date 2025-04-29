@@ -16,6 +16,12 @@ variable "normalized_data_directory" {
   default = "normalized"
 }
 
+variable "athena_outputs_directory" {
+  description = "The directory where the Athena outputs are stored"
+  type        = string
+  default = "athena"
+}
+
 variable "logs_directory" {
     description = "The directory where the logs are stored"
     type        = string
@@ -59,4 +65,9 @@ resource "aws_s3_object" "processed" {
 resource "aws_s3_object" "normalized" {
   bucket = aws_s3_bucket.data.bucket
   key    = "${var.normalized_data_directory}/"
+}
+
+resource "aws_s3_object" "athena_outputs" {
+  bucket = aws_s3_bucket.data.bucket
+  key    = "${var.athena_outputs_directory}/"
 }
