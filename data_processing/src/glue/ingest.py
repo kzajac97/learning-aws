@@ -1,7 +1,6 @@
 import dataclasses
 import re
 import sys
-from typing import Final
 
 from awsglue.context import GlueContext
 from awsglue.dynamicframe import DynamicFrame
@@ -17,20 +16,16 @@ def camel_to_snake(name: str) -> str:
     return re.sub(r"(?<!^)(?=[A-Z])", "_", name).lower()
 
 
-# glue job parameters
-GLUE_INPUTS: Final[list[str]] = [
-    "JOB_NAME",
-    "glue_database",
-    "input_glue_table_name",
-    "output_glue_table_name",
-    "source_label",
+# transformation settings
+# columns to split into arrays
+COLUMNS_TO_SPLIT = [
+    "LanguageHaveWorkedWith",
+    "DatabaseHaveWorkedWith",
+    "LanguageWantToWorkWith",
+    "DatabaseWantToWorkWith",
 ]
-# settings for ingest transformation
-MAX_SPLIT_COL_ITEMS: Final[int] = 10
-MULTI_VALUE_SEPARATOR: Final[str] = ";"
-ED_LEVEL_REJECTED_VALUES: Final[tuple[str, ...]] = ("Something else",)
 # column names and rules
-RAW_COLUMNS_TO_KEEP: Final[tuple[str, ...]] = (
+RAW_COLUMNS_TO_KEEP = [
     "YearsCode",
     "YearsCodePro",
     "Country",
@@ -39,17 +34,7 @@ RAW_COLUMNS_TO_KEEP: Final[tuple[str, ...]] = (
     "DatabaseHaveWorkedWith",
     "LanguageWantToWorkWith",
     "DatabaseWantToWorkWith",
-)
-SPLIT_COLUMNS: Final[tuple[str, ...]] = (
-    "LanguageHaveWorkedWith",
-    "DatabaseHaveWorkedWith",
-    "LanguageWantToWorkWith",
-    "DatabaseWantToWorkWith",
-)
-INT_COLUMNS: Final[tuple[str, ...]] = (
-    "YearsCode",
-    "YearsCodePro",
-)
+]
 
 
 @dataclasses.dataclass
@@ -66,7 +51,8 @@ class Context:
 
     @classmethod
     def from_argv(cls, argv: dict):
-        parameters = getResolvedOptions(argv, GLUE_INPUTS)
+        glue_inputs = ["JOB_NAME", "glue_database", "input_glue_table_name", "output_glue_table_name", "source_label"]
+        parameters = getResolvedOptions(argv, glue_inputs)
 
         return cls(
             spark=SparkContext.getOrCreate(),
@@ -82,24 +68,24 @@ class Context:
 
 def transform(data: DataFrame) -> DataFrame:
     # step 1: drop unwanted columns and nans
-    data = data.select(list(RAW_COLUMNS_TO_KEEP))  # PySpark can only work with list columns, not tuples
+    data = data.select(RAW_COLUMNS_TO_KEEP)  # PySpark can only work with list columns, not tuples
     data = data.replace("NA", None).replace("", None)
     data = data.na.drop(how="any")
 
     # step 2: filter out rows where the count of languages/databases is 10 or more
-    for split_column in SPLIT_COLUMNS:
-        data = data.filter(size(split(col(split_column), MULTI_VALUE_SEPARATOR)) < MAX_SPLIT_COL_ITEMS)
+    for split_column in COLUMNS_TO_SPLIT:
+        data = data.filter(size(split(col(split_column), ";")) < 10)
 
     # step 3: remove rows with specific education and age outliers
-    data = data.filter(~col("EdLevel").isin(list(ED_LEVEL_REJECTED_VALUES)))
+    data = data.filter(~col("EdLevel").isin(["Something else"]))
 
     # step 4: cast numeric columns to integer
-    for cast_column in INT_COLUMNS:
+    for cast_column in ("YearsCode", "YearsCodePro"):
         data = data.withColumn(cast_column, col(cast_column).cast(IntegerType()))
 
     # step 5: split multi-value columns
-    for split_column in SPLIT_COLUMNS:
-        data = data.withColumn(split_column, split(col(split_column), MULTI_VALUE_SEPARATOR))
+    for column in COLUMNS_TO_SPLIT:
+        data = data.withColumn(column, split(col(column), ";"))
 
     # step 6: map column from CamelCase to snake_case
     data = data.toDF(*[camel_to_snake(column) for column in data.columns])
@@ -125,5 +111,4 @@ context.glue.write_dynamic_frame.from_catalog(
     frame=transformed_data,
     database=context.database,
     table_name=context.output_table_name,
-    additional_options={"partitionKeys": [context.source_label]},
 )
