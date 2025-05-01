@@ -138,6 +138,7 @@ law = index_join_table(
 )
 # write answers to S3 -> not into Glue Data Catalog
 answers.write.parquet(f"{context.output_s3_dir}/answers", mode="overwrite")
+countries.write.parquet(f"{context.output_s3_dir}/countries", mode="overwrite")
 lang.write.parquet(f"{context.output_s3_dir}/lang", mode="overwrite")
 db.write.parquet(f"{context.output_s3_dir}/db", mode="overwrite")
 # join tables
