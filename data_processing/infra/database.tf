@@ -55,7 +55,7 @@ resource "aws_db_instance" "postgres" {
 }
 
 resource "aws_ssm_parameter" "db_host" {
-  name  = "/db/host"
+  name  = "/db/endpoint"
   type  = "SecureString"
   value = aws_db_instance.postgres.endpoint
 }

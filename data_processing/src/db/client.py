@@ -27,13 +27,27 @@ class DBClient:
 
     @classmethod
     def from_ssm(cls, prefix: str, client):
+        endpoint = get_ssm_parameter(f"/{prefix}/endpoint", client)
+        host, port = endpoint.split(":")
         return cls(
-            host=get_ssm_parameter(f"/{prefix}/host", client),
+            host=host,
             name=get_ssm_parameter(f"/{prefix}/name", client),
             user=get_ssm_parameter(f"/{prefix}/user", client),
             password=get_ssm_parameter(f"/{prefix}/password", client),
-            port=get_ssm_parameter(f"/{prefix}/port", client),
+            port=port,
         )
+
+    @property
+    def jdbc_url(self):
+        return f"jdbc:postgresql://{self.host}:{self.port}/{self.name}"
+
+    @property
+    def jdbc_connection(self) -> dict:
+        return {
+            "user": self.user,
+            "password": self.password,
+            "driver": "org.postgresql.Driver"
+        }
 
     def connect(self):
         self.connection = psycopg2.connect(
