@@ -16,10 +16,9 @@ resource "aws_glue_crawler" "raw_data_crawler" {
   name          = "raw-data-crawler"
   role          = data.aws_iam_role.main_role.arn
   database_name = aws_glue_catalog_database.data_processing_db.name
-  table_prefix  = "raw_"
 
   s3_target {
-    path = "s3://${aws_s3_bucket.raw_data.bucket}/"
+    path = "s3://${aws_s3_bucket.data.bucket}/${var.raw_data_directory}/"
   }
 
   configuration = jsonencode({
@@ -46,17 +45,17 @@ resource "aws_glue_crawler" "raw_data_crawler" {
 }
 
 resource "aws_glue_catalog_table" "raw_glue_table" {
-  name          = "raw_dps_ingest_data"
+  name          = "raw"
   database_name = aws_glue_catalog_database.data_processing_db.name
 
   storage_descriptor {
-    location = "s3://${aws_s3_bucket.raw_data.bucket}/"
+    location = "s3://${aws_s3_bucket.data.bucket}/${var.raw_data_directory}/"
 
     input_format  = "org.apache.hadoop.mapred.TextInputFormat"
     output_format = "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat"
 
     ser_de_info {
-      name                  = "raw_dps_ingest_data_serde"
+      name                  = "raw_serde"
       serialization_library = "org.apache.hadoop.hive.serde2.OpenCSVSerde"
       parameters = {
         "field.delim"   = ","
@@ -71,11 +70,11 @@ resource "aws_glue_catalog_table" "raw_glue_table" {
 }
 
 resource "aws_glue_catalog_table" "processed_glue_table" {
-  name          = "dps_processed_data"
+  name          = "processed"
   database_name = aws_glue_catalog_database.data_processing_db.name
 
   storage_descriptor {
-    location = "s3://${aws_s3_bucket.processed_data.bucket}/"
+    location = "s3://${aws_s3_bucket.data.bucket}/${var.processed_data_directory}/"
 
     input_format  = "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat"
     output_format = "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat"
@@ -85,10 +84,6 @@ resource "aws_glue_catalog_table" "processed_glue_table" {
       serialization_library = "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe"
     }
 
-    columns {
-      name = "age"
-      type = "int"
-    }
     columns {
       name = "years_code"
       type = "int"
