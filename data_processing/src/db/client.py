@@ -10,7 +10,6 @@ def get_ssm_parameter(name: str, client=None) -> str:
     return response["Parameter"]["Value"]
 
 
-
 class DBClient:
     """
     PostgreSQL manager for simple queries to support health-check script to verify the processing output.
@@ -43,11 +42,7 @@ class DBClient:
 
     @property
     def jdbc_connection(self) -> dict:
-        return {
-            "user": self.user,
-            "password": self.password,
-            "driver": "org.postgresql.Driver"
-        }
+        return {"user": self.user, "password": self.password, "driver": "org.postgresql.Driver"}
 
     def connect(self):
         self.connection = psycopg2.connect(
@@ -80,18 +75,25 @@ class DBClient:
         if self.connection is None:
             self.connect()
 
-        with self.connection.cursor() as cursor:
-            query = sql.SQL("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'")
-            cursor.execute(query)
-            return [row[0] for row in cursor.fetchall()]
+        try:
+            with self.connection.cursor() as cursor:
+                query = sql.SQL("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'")
+                cursor.execute(query)
+                return [row[0] for row in cursor.fetchall()]
+        except psycopg2.Error as e:
+            self.connection.rollback()  # Roll back the transaction
+            raise e  # Re-raise the exception to h00andle it appropriately
 
     def get_column_names(self, table: str) -> list[str]:
         if self.connection is None:
             self.connect()
 
-        with self.connection.cursor() as cursor:
-            query = sql.SQL("SELECT column_name FROM information_schema.columns WHERE table_name = {}").format(
-                sql.Identifier(table)
-            )
-            cursor.execute(query)
-            return [row[0] for row in cursor.fetchall()]
+        try:
+            with self.connection.cursor() as cursor:
+                query_str = "SELECT column_name FROM information_schema.columns WHERE table_name = %s"
+                query = sql.SQL(query_str).format(sql.Placeholder())
+                cursor.execute(query, (table,))
+                return [row[0] for row in cursor.fetchall()]
+        except psycopg2.Error as e:
+            self.connection.rollback()
+            raise e
