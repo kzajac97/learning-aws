@@ -15,7 +15,7 @@ CREATE TABLE databases (
 
 -- Main answers table
 CREATE TABLE answers (
-  id                  SERIAL PRIMARY KEY,
+  id                  BIGINT PRIMARY KEY,
   years_code          INTEGER,
   years_code_pro      INTEGER,
   country_id          INTEGER REFERENCES countries(id),
