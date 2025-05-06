@@ -1,4 +1,4 @@
-name: CI
+name: Python
 
 on:
   push:
@@ -47,25 +47,3 @@ jobs:
         run: pip install -r requirements-dev.txt
       - name: Run pytest
         run: pytest tests
-
-  # 3. Terraform plan per application
-  terraform-plan:
-    needs: test
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        app-path: ["data_processing", "serverless"]
-    defaults:
-      run:
-        working-directory: ${{ matrix.app-path }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: '1.10.3'
-      - name: Terraform init
-        run: terraform init
-      - name: Terraform plan
-        run: terraform plan -out=plan.tfplan
