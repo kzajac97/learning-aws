@@ -8,7 +8,8 @@ class SensorRegistryClient:
 
     def put_item(self, sensor_id: str, working_ok: bool):
         self.client.put_item(
-            TableName=self.table_name, Item={"sensor_id": {"S": sensor_id}, "working_ok": {"BOOL": working_ok}}
+            TableName=self.table_name,
+            Item={"sensor_id": {"S": sensor_id}, "working_ok": {"BOOL": working_ok}},
         )
 
     def get_item(self, sensor_id: str) -> dict:
@@ -27,7 +28,9 @@ class SensorRegistryClient:
     def exists(self, sensor_id: str) -> bool:
         try:
             response = self.client.get_item(
-                TableName=self.table_name, Key={"sensor_id": {"S": sensor_id}}, ProjectionExpression="sensor_id"
+                TableName=self.table_name,
+                Key={"sensor_id": {"S": sensor_id}},
+                ProjectionExpression="sensor_id",
             )
             return "Item" in response
         except ClientError:  # sensor_id not found - avoid scan

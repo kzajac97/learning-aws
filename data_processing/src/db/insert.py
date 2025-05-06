@@ -33,7 +33,10 @@ def main(profile: str, region: str, s3_dir: str):
 
     spark = (
         SparkSession.builder.appName("S3ToSql")
-        .config("spark.jars.packages", "org.apache.hadoop:hadoop-aws:3.3.2,com.amazonaws:aws-java-sdk-bundle:1.11.1026")
+        .config(
+            "spark.jars.packages",
+            "org.apache.hadoop:hadoop-aws:3.3.2,com.amazonaws:aws-java-sdk-bundle:1.11.1026",
+        )
         .config("spark.jars", "postgresql-42.5.0.jar")
         .getOrCreate()
     )
@@ -41,7 +44,10 @@ def main(profile: str, region: str, s3_dir: str):
     hadoop_conf = spark.sparkContext._jsc.hadoopConfiguration()
 
     # Set AWS credentials for s3a
-    hadoop_conf.set("fs.s3a.aws.credentials.provider", "org.apache.hadoop.fs.s3a.TemporaryAWSCredentialsProvider")
+    hadoop_conf.set(
+        "fs.s3a.aws.credentials.provider",
+        "org.apache.hadoop.fs.s3a.TemporaryAWSCredentialsProvider",
+    )
     hadoop_conf.set("fs.s3a.access.key", credentials.access_key)
     hadoop_conf.set("fs.s3a.secret.key", credentials.secret_key)
     hadoop_conf.set("fs.s3a.session.token", credentials.token)

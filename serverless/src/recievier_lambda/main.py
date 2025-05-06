@@ -64,7 +64,11 @@ def handler(event, _):
     logging.info(f"Created {len(batches)} batches")
 
     json_batches = [batch.to_dict("records") for batch in batches]
-    payload = {"status_code": 200, "source": Source.event.value, "batches": json_batches}
+    payload = {
+        "status_code": 200,
+        "source": Source.event.value,
+        "batches": json_batches,
+    }
     payload_size = len(json.dumps(payload).encode("utf-8"))
 
     if payload_size > (MAX_PAYLOAD_SIZE - BUFFER):

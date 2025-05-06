@@ -34,8 +34,19 @@ def invoke_lambda(payload: dict, client) -> dict:
 
 
 @click.command()
-@click.option("--config", required=True, help="Number of locations to trigger", type=click.Path(exists=True))
-@click.option("--dump", required=False, type=click.Path(), default=None, help="Path to CSV with data dump")
+@click.option(
+    "--config",
+    required=True,
+    help="Number of locations to trigger",
+    type=click.Path(exists=True),
+)
+@click.option(
+    "--dump",
+    required=False,
+    type=click.Path(),
+    default=None,
+    help="Path to CSV with data dump",
+)
 def main(config: str, dump: bool):
     session = boto3.Session(profile_name=os.environ["AWS_PROFILE_NAME"], region_name="us-east-1")
     client = session.client("lambda")

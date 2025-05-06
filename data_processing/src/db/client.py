@@ -42,11 +42,19 @@ class DBClient:
 
     @property
     def jdbc_connection(self) -> dict:
-        return {"user": self.user, "password": self.password, "driver": "org.postgresql.Driver"}
+        return {
+            "user": self.user,
+            "password": self.password,
+            "driver": "org.postgresql.Driver",
+        }
 
     def connect(self):
         self.connection = psycopg2.connect(
-            host=self.host, database=self.name, user=self.user, password=self.password, port=self.port
+            host=self.host,
+            database=self.name,
+            user=self.user,
+            password=self.password,
+            port=self.port,
         )
 
     def execute(self, sql: str):
