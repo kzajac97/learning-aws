@@ -12,6 +12,14 @@ resource "aws_s3_bucket" "s3" {
   }
 }
 
+resource "aws_s3_bucket_versioning" "versioning" {
+  bucket = aws_s3_bucket.s3.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
 resource "aws_dynamodb_table" "locks" {
   name         = "terraform-locks"
   billing_mode = "PAY_PER_REQUEST"
