@@ -1,0 +1,41 @@
+exclude: (data | __pycache__ | *venv*/ | \.git | \.terraform | \.ipynb_checkpoints)
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+        description: checks for files that contain merge conflict strings.
+      - id: debug-statements
+        files: (?ix)\.py$
+        description: checks for debugger imports
+      - id: detect-private-key
+        description: detects the presence of private keys
+
+  - repo: https://github.com/psf/black-pre-commit-mirror
+    rev: 24.4.2
+    hooks:
+      - id: black
+        language_version: python3.12 # Change this with your python version
+        args:
+          - --target-version=py312
+          - --line-length=120
+        files: (?ix)\.py$
+
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.5.2
+    hooks:
+      - id: ruff
+        args: [ --fix, --exit-non-zero-on-fix ]
+
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.99.0 # Get the latest from: https://github.com/antonbabenko/pre-commit-terraform/releases
+    hooks:
+      - id: terraform_fmt
+        args:
+          - --args=-recursive=true
+          - --hook-config=--parallelism-ci-cpu-cores=1
