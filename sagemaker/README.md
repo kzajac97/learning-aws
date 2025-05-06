@@ -4,7 +4,7 @@ This repository contains snippets for model usage with AWS SageMaker.
 
 **Examples**:
 
-* `processing_job` - Example Docker container running `torchvision` for image augmentation 
+* `processing_job` - Example Docker container running `torchvision` for image augmentation
 * `real_time_inference_endpoint` - Terraform code for deploying HuggingFace model to real-time endpoint using DeepLearning Containers
 * `sentence_transformer_batch_transform` - Batch transform with Sentence Transformer
 * `serverless_inference_endpoint` - Serverless inference endpoint with text generation model from HuggingFace

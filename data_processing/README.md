@@ -1,7 +1,7 @@
 # Data Processing
 
 This application is a toy example of Glue based data processing application, using StackOverflow developer survey as
-exemplary data. The app contains set-up for transforming raw CSV with survey data for particular year into normalized 
+exemplary data. The app contains set-up for transforming raw CSV with survey data for particular year into normalized
 SQL database, hosted on Amazon RDS. All transformations are done in PySpark and can be run as Glue jobs.
 
 Application layout:
@@ -17,7 +17,7 @@ Application layout:
   * `workflow.ipynb` - Jupyter notebook with example workflow for running the app using python scripts
 
 *Note*: Transforming such data in normalized schema is not usually done, this application is meant as example showcasing
-AWS Glue, Athena and PySpark for educational purpose. In real-world case analytical schema would be probably better, 
+AWS Glue, Athena and PySpark for educational purpose. In real-world case analytical schema would be probably better,
 Stack Overflow data could be also easily analysed using just Glue Crawler + Athena setup. PySpark might also be overkill
 for such small dataset.
 
@@ -39,7 +39,7 @@ Final step is done locally, to show RDS connection and PySpark also locally.
 
 AWS Glue is priced mostly based on DPU (data-processing-unit) runtime. DPUs are used for crawlers and ETL jobs, where
 the size of the machine is counted as multiples of DPU. The options range from `G.025X` (1/4 DPU), to standard `G.1X`
-and up to `G.8X` with 32 vCPUs and 128GB of memory. 
+and up to `G.8X` with 32 vCPUs and 128GB of memory.
 
 AWS Glue ETL can be written is Python or Scala, where python scripts need to be based on PySpark. Binary supported
 libraries, such as pandas or numpy are not supported.
@@ -49,17 +49,17 @@ libraries, such as pandas or numpy are not supported.
 AWS Athena is a serverless query engine, which allows to run SQL queries on data stored in S3. It uses Glue Data Catalog
 as a metadata store, and can be used to query data stored in various formats, such as CSV, JSON, Parquet or ORC. Athena
 is based on Presto, which is an open-source distributed SQL query engine. It is a serverless service, so there is no need
-to manage the underlying infrastructure. Athena is charged based on the amount of data scanned. 
+to manage the underlying infrastructure. Athena is charged based on the amount of data scanned.
 
-In this applications Athena is used to query and look around the data on different levels of processing, apart from the 
+In this applications Athena is used to query and look around the data on different levels of processing, apart from the
 last step, where data is in PostgreSQL database.
 
 ## VPC & Security Groups
 
-In this application VPC is used to host the RDS database. The VPC is set up with public and private subnets, where the 
+In this application VPC is used to host the RDS database. The VPC is set up with public and private subnets, where the
 `default` VPC for AWS Account is used. The RDS database is hosted in the private subnet and approach of IP whitelisting
 is used to allow access to the database from the Glue jobs. The security group is set up to allow access from single IP
-given as terraform variable. 
+given as terraform variable.
 
 *Note*: If using the copy of this infrastructure, set the IP to desired address, ideally under the University VPN, which
 will prevent access from outside this network to the RDS. This is educational example, so strict security is not

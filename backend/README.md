@@ -13,7 +13,7 @@ for managing the backend later, using the code below (add provider and required 
 
 1. Run `terraform init`
 2. Run `terraform plan -out backend.tfp` (this saves plan into the file)
-3. Run `terraform apply "backend.tf"` (create resource on AWS) 
+3. Run `terraform apply "backend.tf"` (create resource on AWS)
 
 ```terraform
 resource "aws_s3_bucket" "data" {
@@ -42,7 +42,7 @@ resource "aws_dynamodb_table" "terraform_locks" {
 
 ### State Migration
 
-After creating the backend successfully, its own state can be migrated to the S3 and DynamoDB. To do this, review the 
+After creating the backend successfully, its own state can be migrated to the S3 and DynamoDB. To do this, review the
 created resources and follow the steps:
 
 1. Run `terraform init -migrate-state` and confirm it with `"yes"`
