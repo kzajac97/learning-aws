@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  # 1. Lint entire repository
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.10.3'
+      - name: Install pre-commit
+        run: pip install pre-commit
+      - name: Run pre-commit hooks
+        run: pre-commit run --all-files
+
+  # 2. Run pytest per application
+  test:
+    needs: lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app-path: ["data_processing", "serverless"]
+    defaults:
+      run:
+        working-directory: ${{ matrix.app-path }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Install tools
+        run: pip install -r requirements-dev.txt
+      - name: Run pytest
+        run: pytest tests
+
+  # 3. Terraform plan per application
+  terraform-plan:
+    needs: test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app-path: ["data_processing", "serverless"]
+    defaults:
+      run:
+        working-directory: ${{ matrix.app-path }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.10.3'
+      - name: Terraform init
+        run: terraform init
+      - name: Terraform plan
+        run: terraform plan -out=plan.tfplan
