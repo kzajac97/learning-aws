@@ -1,7 +1,5 @@
 provider "aws" {
   region = "us-east-1"
-  # shared_credentials_files = ["~/.aws/credentials"]
-  # profile                  = "pwr"
 }
 
 resource "aws_s3_bucket" "s3" {
