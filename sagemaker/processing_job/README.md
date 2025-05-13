@@ -46,8 +46,8 @@ Moreover, using SageMaker processing job augmentation can be quite easily decoup
 
 Defining script processor requires machine parameters (instance type and number of instances), image URI and AWS IAM
 role. Running the script processing job downloads the data from S3 to given by (controlled by source and destination
-parameters of `ProcessingInput`), runs code given by `code.py` parameter, which is downloaded to container and uploads 
-the results from container to S3 (controlled by parameters of `ProcessingOutput`). 
+parameters of `ProcessingInput`), runs code given by `code.py` parameter, which is downloaded to container and uploads
+the results from container to S3 (controlled by parameters of `ProcessingOutput`).
 
 To run job in standalone way use following code snippet adding required parameters:
 
@@ -86,11 +86,11 @@ script_processor = ScriptProcessor(
 
 for index in range(0, len(input_paths), BATCH_SIZE):  # batching of paths to input images
     batch = input_paths[index : index + BATCH_SIZE]
-    
+
     input_dir = f"s3://dataset/train/{index}/"
     output_dir = f"s3://dataset/preprocessed/{index}/"
-    
-    
+
+
     script_processor.run(
         code="main.py",
         inputs=[ProcessingInput(source="s3://dataset/train/", destination="/opt/ml/processing/input")],
@@ -107,4 +107,3 @@ for index in range(0, len(input_paths), BATCH_SIZE):  # batching of paths to inp
 | AWS Examples                  | [LINK](https://github.com/aws/amazon-sagemaker-examples/tree/main/sagemaker_processing/scikit_learn_data_processing_and_model_evaluation) |
 | PyTorch Augmentation          | [LINK](https://pytorch.org/vision/stable/transforms.html)                                                                                 |
 | SageMaker Pricing             | [LINK](https://aws.amazon.com/sagemaker/pricing/)                                                                                         |
-

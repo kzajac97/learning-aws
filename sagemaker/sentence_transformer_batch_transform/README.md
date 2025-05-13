@@ -3,7 +3,7 @@
 This snippet allows using SentenceTransformer model with SageMaker batch transform. It works by providing additional
 file (inference.py), which overloads the default code of the SageMaker Batch Transform container. The script needs to
 be added to the archive, where the model is located. Model used in the example is `microsoft/MiniLM-L12-H384-uncased`,
-which is the smallest sentence  transformer model available, but it can be replaced with any model from available ones. 
+which is the smallest sentence  transformer model available, but it can be replaced with any model from available ones.
 
 ## Creating the Model
 

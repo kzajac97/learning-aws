@@ -51,7 +51,13 @@ class Context:
 
     @classmethod
     def from_argv(cls, argv: dict):
-        glue_inputs = ["JOB_NAME", "glue_database", "input_glue_table_name", "output_glue_table_name", "source_label"]
+        glue_inputs = [
+            "JOB_NAME",
+            "glue_database",
+            "input_glue_table_name",
+            "output_glue_table_name",
+            "source_label",
+        ]
         parameters = getResolvedOptions(argv, glue_inputs)
 
         return cls(

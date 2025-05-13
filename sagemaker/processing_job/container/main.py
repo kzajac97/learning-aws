@@ -10,7 +10,12 @@ EXTENSION = "JPEG"
 
 @click.command()
 @click.option("--input-dir", type=str, required=True, help="Directory with images to preprocess")
-@click.option("--output-dir", type=str, required=True, help="Directory to save preprocessed images")
+@click.option(
+    "--output-dir",
+    type=str,
+    required=True,
+    help="Directory to save preprocessed images",
+)
 def main(input_dir: str, output_dir: str):
     transforms = v2.Compose(
         [

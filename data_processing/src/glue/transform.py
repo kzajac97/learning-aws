@@ -22,7 +22,12 @@ class Context:
 
     @classmethod
     def from_argv(cls, argv: dict):
-        glue_inputs = ["JOB_NAME", "glue_database", "input_glue_table_name", "output_s3_dir"]
+        glue_inputs = [
+            "JOB_NAME",
+            "glue_database",
+            "input_glue_table_name",
+            "output_s3_dir",
+        ]
         parameters = getResolvedOptions(argv, glue_inputs)
 
         return cls(
@@ -87,7 +92,11 @@ def index_countries(answers: DataFrame, countries: DataFrame) -> DataFrame:
         answers.alias("a")
         .join(countries_aliased, F.col("a.country_name") == F.col("c.name"), how="left")
         .select(
-            F.col("a.id"), F.col("a.years_code"), F.col("a.years_code_pro"), F.col("c.country_id"), F.col("a.ed_level")
+            F.col("a.id"),
+            F.col("a.years_code"),
+            F.col("a.years_code_pro"),
+            F.col("c.country_id"),
+            F.col("a.ed_level"),
         )
     )
 
@@ -96,8 +105,15 @@ def index_countries(answers: DataFrame, countries: DataFrame) -> DataFrame:
 
 def index_join_table(answers: DataFrame, join_table: DataFrame, column: str, alias: str, id_name: str) -> DataFrame:
     joined = (
-        answers.select(F.monotonically_increasing_id().alias("answer_id"), F.explode(column).alias(alias))
-        .join(join_table.withColumnRenamed("id", id_name).alias("j"), F.col(alias) == F.col("j.name"), how="left")
+        answers.select(
+            F.monotonically_increasing_id().alias("answer_id"),
+            F.explode(column).alias(alias),
+        )
+        .join(
+            join_table.withColumnRenamed("id", id_name).alias("j"),
+            F.col(alias) == F.col("j.name"),
+            how="left",
+        )
         .select("answer_id", F.col(f"j.{id_name}"))
     )
 
@@ -118,23 +134,49 @@ dataframe = pretransform(dataframe)
 countries = create_country(dataframe)
 # create language and database tables
 lang = create_from_union(
-    dataframe, alias="language", left="language_have_worked_with", right="language_want_to_work_with"
+    dataframe,
+    alias="language",
+    left="language_have_worked_with",
+    right="language_want_to_work_with",
 )
 db = create_from_union(
-    dataframe, alias="database", left="database_have_worked_with", right="database_want_to_work_with"
+    dataframe,
+    alias="database",
+    left="database_have_worked_with",
+    right="database_want_to_work_with",
 )
 # create answers table
 raw_answers = create_answers(dataframe)
 # index countries into answers
 answers = index_countries(raw_answers, countries)
 # create 4 join tables
-dah = index_join_table(dataframe, join_table=db, column="database_have_worked_with", alias="db", id_name="database_id")
-daw = index_join_table(dataframe, join_table=db, column="database_want_to_work_with", alias="db", id_name="database_id")
+dah = index_join_table(
+    dataframe,
+    join_table=db,
+    column="database_have_worked_with",
+    alias="db",
+    id_name="database_id",
+)
+daw = index_join_table(
+    dataframe,
+    join_table=db,
+    column="database_want_to_work_with",
+    alias="db",
+    id_name="database_id",
+)
 lah = index_join_table(
-    dataframe, join_table=lang, column="language_have_worked_with", alias="lang", id_name="language_id"
+    dataframe,
+    join_table=lang,
+    column="language_have_worked_with",
+    alias="lang",
+    id_name="language_id",
 )
 law = index_join_table(
-    dataframe, join_table=lang, column="language_want_to_work_with", alias="lang", id_name="language_id"
+    dataframe,
+    join_table=lang,
+    column="language_want_to_work_with",
+    alias="lang",
+    id_name="language_id",
 )
 # write answers to S3 -> not into Glue Data Catalog
 answers.write.parquet(f"{context.output_s3_dir}/answers", mode="overwrite")

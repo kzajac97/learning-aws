@@ -4,7 +4,13 @@ from datetime import datetime as dt
 from context import Context, SensorStatus
 
 
-def send_message(context: Context, sensor_id: str, location_id: str, temperature: float, status: SensorStatus):
+def send_message(
+    context: Context,
+    sensor_id: str,
+    location_id: str,
+    temperature: float,
+    status: SensorStatus,
+):
     message = {
         "sensor_id": sensor_id,
         "location_id": location_id,
