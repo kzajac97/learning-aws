@@ -3,11 +3,6 @@
 This repository contains various project and smaller scripts related to learning AWS. Most of them has been created to
 support the course at Wrocław University of Science and Technology, related to AWS and cloud computing.
 
-This repository is structured with:
-* `applications` - exemple applications using various AWS services
-* `modules` - generic terraform modules for AWS services
-* `libraries` - shared python libraries for AWS services
-
 Currently implemented applications:
 * `backend` - configuration for shared terraform backend management with S3 and DynamoDB
 * `data_processing` - example data processing app using AWS Glue and PySpark
