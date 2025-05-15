@@ -120,3 +120,43 @@ resource "aws_glue_catalog_table" "processed_glue_table" {
 
   table_type = "EXTERNAL_TABLE"
 }
+
+
+module "glue_ingest_job" {
+  source = "./modules/glue_etl"
+
+  name     = "dps-ingest"
+  env      = "dev"
+  role_arn = data.aws_iam_role.main_role.arn
+
+  glue_assets_bucket = aws_s3_bucket.glue_assets.bucket
+  logs_s3_uri        = "s3://${aws_s3_object.sparklogs.bucket}/${aws_s3_object.sparklogs.key}"
+  script_path        = "${path.module}/../src/glue/ingest.py"
+  scripts_directory  = var.scripts_directory
+
+  arguments = {
+    "--glue_database"          = aws_glue_catalog_database.data_processing_db.name
+    "--input_glue_table_name"  = aws_glue_catalog_table.raw_glue_table.name
+    "--output_glue_table_name" = aws_glue_catalog_table.processed_glue_table.name
+    "--source_label"           = "default"
+  }
+}
+
+module "glue_transform_job" {
+  source = "./modules/glue_etl"
+
+  name     = "dps-transform"
+  env      = "dev"
+  role_arn = data.aws_iam_role.main_role.arn
+
+  glue_assets_bucket = aws_s3_bucket.glue_assets.bucket
+  logs_s3_uri        = "s3://${aws_s3_object.sparklogs.bucket}/${aws_s3_object.sparklogs.key}"
+  script_path        = "${path.module}/../src/glue/transform.py"
+  scripts_directory  = var.scripts_directory
+
+  arguments = {
+    "--glue_database"         = aws_glue_catalog_database.data_processing_db.name
+    "--input_glue_table_name" = aws_glue_catalog_table.processed_glue_table.name
+    "--output_s3_dir"         = "s3://${aws_s3_bucket.data.bucket}/${var.normalized_data_directory}/"
+  }
+}
