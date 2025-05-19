@@ -1,0 +1,62 @@
+name: Serverless (Terraform)
+
+on:
+  workflow_dispatch:
+    inputs:
+      env:
+        description: 'Environment'
+        required: true
+        type: choice
+        options:
+          - dev
+          - prod
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
+      AWS_SESSION_TOKEN: ${{ secrets.aws_session_token }}
+      AWS_REGION: ${{ secrets.aws_region }}
+      CONFIG_PATH: configs/${{ github.event.inputs.env }}.yaml
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+      - run: echo Using config from $CONFIG_PATH
+      - uses: gruntwork-io/terragrunt-action@v2
+        with:
+          tg_version: 'v0.42.8'
+          tf_version: '1.10.3'
+          tg_dir: 'serverless/infra'
+          tg_command: 'validate'
+      - uses: gruntwork-io/terragrunt-action@v2
+        with:
+          tg_version: 'v0.42.8'
+          tf_version: '1.10.3'
+          tg_dir: 'serverless/infra'
+          tg_command: 'plan'
+
+  apply:
+    needs: plan
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
+      AWS_SESSION_TOKEN: ${{ secrets.aws_session_token }}
+      AWS_REGION: ${{ secrets.aws_region }}
+      CONFIG_PATH: configs/${{ github.event.inputs.env }}.yaml
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+      - run: echo Using config from $CONFIG_PATH
+      - uses: gruntwork-io/terragrunt-action@v2
+        with:
+          tg_version: 'v0.42.8'
+          tf_version: '1.10.3'
+          tg_dir: 'serverless/infra'
+          tg_command: 'apply'

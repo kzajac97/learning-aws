@@ -1,7 +1,7 @@
 module "receiver_lambda" {
   source = "./modules/lambda"
 
-  env              = "dev"
+  env              = local.env
   source_code_path = "${path.module}/../src/receiver_lambda"
   role_arn         = data.aws_iam_role.main_role.arn
 
@@ -22,7 +22,7 @@ module "receiver_lambda" {
 module "reporter_lambda" {
   source = "./modules/lambda"
 
-  env              = "dev"
+  env              = local.env
   source_code_path = "${path.module}/../src/reporter_lambda"
   role_arn         = data.aws_iam_role.main_role.arn
 
@@ -31,7 +31,9 @@ module "reporter_lambda" {
   timeout     = 60
   memory_size = 1024
 
-  max_parallel_executions = 8
+  layers = ["arn:aws:lambda:${var.aws_region}:336392948345:layer:AWSSDKPandas-Python313:1"]
+
+  max_parallel_executions = floor(0.4 * local.config["lambdas"]["max_parallel_executions"])
 
   env_variables = {
     PAYLOAD_BUCKET = aws_s3_bucket.sfn_payloads.bucket
@@ -39,7 +41,7 @@ module "reporter_lambda" {
 }
 
 resource "aws_sfn_state_machine" "sensor_analytics_workflow" {
-  name     = "sensor-analytics-workflow"
+  name     = "sensor-analytics-workflow-${local.env}"
   role_arn = data.aws_iam_role.main_role.arn
 
   definition = templatefile("${path.module}/sensor-analytics-workflow.asl.json", {

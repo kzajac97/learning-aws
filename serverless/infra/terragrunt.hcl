@@ -1,6 +1,6 @@
 locals {
-  env = get_env("ENV")
   aws_region = get_env("AWS_REGION")
+  config_path = get_env("CONFIG_PATH")
 }
 
 remote_state {
@@ -29,6 +29,6 @@ EOF
 }
 
 inputs = {
-  env = local.env
+  config_path = local.config_path
   aws_region = local.aws_region
 }

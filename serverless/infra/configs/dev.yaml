@@ -1,3 +1,4 @@
+env: dev
 lambdas:
   max_parallel_executions: 10
   analytics:

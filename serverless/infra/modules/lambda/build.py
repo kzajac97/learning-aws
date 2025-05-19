@@ -31,6 +31,6 @@ if __name__ == "__main__":
 
     print("Step 3: Running pip install")
     if (target / "requirements.txt").exists():
-        os.system(f"pip install -r {target}/requirements.txt --target {target}")
+        os.system(f"pip3 install -r {target}/requirements.txt --target {target} --quiet")
 
     print(f"Building lambda from {source} completed!")

@@ -16,7 +16,7 @@ resource "null_resource" "build_lambda" {
 
   provisioner "local-exec" {
     # python script to build the lambda function, list of paths is passed as JSON
-    command = "python ${path.module}/build.py --source ${var.source_code_path} --target ${local.build_dir} --shared ${jsonencode(var.shared_code_paths)}"
+    command = "python3 ${path.module}/build.py --source ${var.source_code_path} --target ${local.build_dir} --shared ${jsonencode(var.shared_code_paths)}"
   }
 }
 
@@ -30,7 +30,7 @@ data "archive_file" "source_code" {
 
 resource "aws_lambda_function" "function" {
   # function name is the basename of directory with source code
-  function_name = local.name
+  function_name = "${local.name}-${var.env}"
   role          = var.role_arn
 
   filename   = data.archive_file.source_code.output_path

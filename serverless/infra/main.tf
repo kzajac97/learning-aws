@@ -1,19 +1,18 @@
-provider "aws" {
-  region = "us-east-1"
-}
-
-provider "archive" {}
-
 data "aws_iam_role" "main_role" {
   name = "LabRole"
 }
 
-terraform {
-  backend "s3" {
-    bucket         = "infra-shared-tf-backend"
-    key            = "serverless.tfstate"
-    region         = "us-east-1"
-    dynamodb_table = "terraform-locks"
-    encrypt        = true
-  }
+variable "aws_region" {
+  description = "The AWS region to deploy to"
+  type        = string
+}
+
+variable "config_path" {
+  description = "Path to the configuration file"
+  type        = string
+}
+
+locals {
+  config = yamldecode(file(var.config_path))
+  env    = local.config["env"] # name of the environment in given config
 }
