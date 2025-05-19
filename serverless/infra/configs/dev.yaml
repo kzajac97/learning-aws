@@ -1,0 +1,8 @@
+lambdas:
+  max_parallel_executions: 10
+  analytics:
+    memory_size: 1024
+    timeout: 60
+storage:
+  payload_expiration_days: 1
+  message_retention_seconds: 60  # 1 minute
