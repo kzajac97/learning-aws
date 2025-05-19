@@ -32,7 +32,7 @@ resource "aws_glue_job" "etl" {
     {
       "--enable-metrics"                   = "true"
       "--enable-continuous-cloudwatch-log" = "true"
-      "--TempDir"                          = "s3://${var.glue_assets_bucket}/sparklogs/"
+      "--TempDir"                          = "s3://${var.logs_s3_uri}"
       "--JOB_NAME"                         = var.name
     },
     var.arguments
