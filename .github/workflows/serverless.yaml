@@ -48,10 +48,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
+        id: setup-python
         with:
           python-version: '3.12'
       - run: echo Using config from $CONFIG_PATH
-      - run: echo "${{ steps.setup-python.outputs.python-location }}/bin" >> $GITHUB_PATH
+      - run: echo "${pythonLocation}/bin" >> $GITHUB_PATH
       - uses: gruntwork-io/terragrunt-action@v2
         with:
           tg_version: 'v0.42.8'

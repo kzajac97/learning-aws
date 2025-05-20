@@ -10,7 +10,7 @@ module "receiver_lambda" {
   timeout     = 60
   memory_size = 1024
 
-  build_python_path = var.overwrite_python_path
+  # build_python_path = var.overwrite_python_path
 
   max_parallel_executions = 1
 
@@ -33,8 +33,8 @@ module "reporter_lambda" {
   timeout     = 60
   memory_size = 1024
 
-  layers            = ["arn:aws:lambda:${var.aws_region}:336392948345:layer:AWSSDKPandas-Python313:1"]
-  build_python_path = var.overwrite_python_path
+  layers = ["arn:aws:lambda:${var.aws_region}:336392948345:layer:AWSSDKPandas-Python313:1"]
+  # build_python_path = var.overwrite_python_path
 
   max_parallel_executions = floor(0.4 * local.config["lambdas"]["max_parallel_executions"])
 
