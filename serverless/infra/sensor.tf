@@ -14,8 +14,6 @@ module "sensor_lambda" {
 
   max_parallel_executions = floor(0.4 * local.config["lambdas"]["max_parallel_executions"])
 
-  # build_python_path = var.overwrite_python_path
-
   env_variables = {
     SNS_TOPIC_ARN         = aws_sns_topic.sensor_notifications.arn
     SENSOR_REGISTRY_TABLE = aws_dynamodb_table.sensor_registry.name

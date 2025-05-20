@@ -12,12 +12,6 @@ variable "config_path" {
   type        = string
 }
 
-# variable "overwrite_python_path" {
-#   description = "Path to the Python executable to use for Lambda build script"
-#   type        = string
-#   default     = "python"
-# }
-
 locals {
   config = yamldecode(file(var.config_path))
   env    = local.config["env"] # name of the environment in given config

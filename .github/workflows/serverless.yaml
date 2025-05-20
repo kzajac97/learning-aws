@@ -47,13 +47,16 @@ jobs:
       CONFIG_PATH: configs/${{ github.event.inputs.env }}.yaml
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        id: setup-python
-        with:
-          python-version: '3.12'
       - run: echo Using config from $CONFIG_PATH
       - run: echo "${pythonLocation}/bin" >> $GITHUB_PATH
       - uses: gruntwork-io/terragrunt-action@v2
+        env:
+          # Run apt-get inside the container to allow using python in local-exec of terraform
+          INPUT_PRE_EXEC_1: |
+            apt-get update && \
+            apt-get install -y python3 python3-pip && \
+            # create or overwrite /usr/bin/python to point at python3
+            ln -sf "$(which python3)" /usr/bin/python
         with:
           tg_version: 'v0.42.8'
           tf_version: '1.10.3'
