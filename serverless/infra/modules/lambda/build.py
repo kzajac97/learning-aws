@@ -1,6 +1,7 @@
 import argparse
 import json
-import os
+import subprocess
+import sys
 import shutil
 from pathlib import Path
 
@@ -31,6 +32,8 @@ if __name__ == "__main__":
 
     print("Step 3: Running pip install")
     if (target / "requirements.txt").exists():
-        os.system(f"pip install -r {target}/requirements.txt --target {target}")
+        subprocess.check_call(
+            [sys.executable, "-m", "pip", "install", "-r", str(target / "requirements.txt"), "--target", str(target)]
+        )
 
     print(f"Building lambda from {source} completed!")

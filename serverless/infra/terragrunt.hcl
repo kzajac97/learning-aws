@@ -1,6 +1,7 @@
 locals {
   aws_region = get_env("AWS_REGION")
   config_path = get_env("CONFIG_PATH")
+  overwrite_python_path = get_env("OVERWRITE_PYTHON_PATH", "python")
 }
 
 remote_state {
@@ -31,4 +32,5 @@ EOF
 inputs = {
   config_path = local.config_path
   aws_region = local.aws_region
+  overwrite_python_path = local.overwrite_python_path
 }

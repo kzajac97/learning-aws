@@ -61,3 +61,9 @@ variable "env_variables" {
   description = "Environment variables for the lambda function"
   default     = {}
 }
+
+variable "build_python_path" {
+  type        = string
+  description = "Path to the Python executable to use for Lambda build script"
+  default     = "python"
+}

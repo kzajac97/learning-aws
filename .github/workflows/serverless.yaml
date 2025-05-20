@@ -45,6 +45,8 @@ jobs:
       AWS_SESSION_TOKEN: ${{ secrets.aws_session_token }}
       AWS_REGION: ${{ secrets.aws_region }}
       CONFIG_PATH: configs/${{ github.event.inputs.env }}.yaml
+      # this is the path where python is installed in GitHub runner
+      OVERWRITE_PYTHON_PATH: /opt/hostedtoolcache/Python/3.12.10/x64/bin/python
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
