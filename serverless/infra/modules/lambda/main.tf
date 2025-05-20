@@ -16,7 +16,7 @@ resource "null_resource" "build_lambda" {
 
   provisioner "local-exec" {
     # python script to build the lambda function, list of paths is passed as JSON
-    command = "python3 ${path.module}/build.py --source ${var.source_code_path} --target ${local.build_dir} --shared ${jsonencode(var.shared_code_paths)}"
+    command = "python build.py --source ${var.source_code_path} --target ${local.build_dir} --shared ${jsonencode(var.shared_code_paths)}"
   }
 }
 
