@@ -45,15 +45,13 @@ jobs:
       AWS_SESSION_TOKEN: ${{ secrets.aws_session_token }}
       AWS_REGION: ${{ secrets.aws_region }}
       CONFIG_PATH: configs/${{ github.event.inputs.env }}.yaml
-      # this is the path where python is installed in GitHub runner
-      OVERWRITE_PYTHON_PATH: /opt/hostedtoolcache/Python/3.12.10/x64/bin/python
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
           python-version: '3.12'
       - run: echo Using config from $CONFIG_PATH
-      - run: echo $PATH
+      - run: echo "${{ steps.setup-python.outputs.python-location }}/bin" >> $GITHUB_PATH
       - uses: gruntwork-io/terragrunt-action@v2
         with:
           tg_version: 'v0.42.8'
