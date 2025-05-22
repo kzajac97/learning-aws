@@ -1,0 +1,3 @@
+creation_rules:
+  - kms: "arn:aws:kms:us-east-1:994766090358:key/47b3f38b-44e6-4b93-a91c-55b468be614a"
+    encrypted_regex: '^(secrets)$'
