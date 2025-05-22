@@ -1,42 +1,24 @@
-variable "db_name" {
-  type        = string
-  description = "RDS database name"
-  default     = "survey"
-}
-
-variable "db_username" {
-  type        = string
-  description = "RDS username"
-  default     = "dbuser"
-}
-
-variable "password" {
-  type        = string
-  description = "RDS password (secret)"
-  sensitive   = true
-}
-
 resource "aws_ssm_parameter" "db_name" {
   name  = "/db/name"
   type  = "String"
-  value = var.db_name
+  value = local.config.db.name
 }
 
 resource "aws_ssm_parameter" "db_user" {
   name  = "/db/user"
   type  = "String"
-  value = var.db_username
+  value = local.config.db.username
 }
 
 resource "aws_ssm_parameter" "db_password" {
   name  = "/db/password"
   type  = "SecureString"
-  value = var.password
+  value = local.config.db.password
 }
 
 resource "aws_db_instance" "postgres" {
   identifier     = "survey-postgres"
-  db_name        = var.db_name
+  db_name        = local.config.db.name
   engine         = "postgres"
   engine_version = "17.2"
 
@@ -45,8 +27,8 @@ resource "aws_db_instance" "postgres" {
   allocated_storage = 10
   storage_type      = "gp2"
 
-  username = var.db_username
-  password = var.password
+  username = local.config.db.username
+  password = local.config.db.password
 
   skip_final_snapshot = true
   publicly_accessible = true
