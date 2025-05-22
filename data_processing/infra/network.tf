@@ -1,9 +1,3 @@
-variable "public_ip" {
-  type        = string
-  description = "Public IP of the machine to allow access to RDS"
-  sensitive   = true
-}
-
 data "aws_vpc" "default" {
   default = true
 }
@@ -51,7 +45,7 @@ resource "aws_security_group" "rds_restricted" {
     from_port   = 5432 # default for PostgreSQL
     to_port     = 5432
     protocol    = "tcp"
-    cidr_blocks = ["${var.public_ip}/32"]
+    cidr_blocks = ["${local.config.network.allowed_ip}/32"]
   }
 
   # Allow all traffic within the same security group (required for Glue)
