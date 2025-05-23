@@ -31,28 +31,28 @@ jobs:
         if: always()
         shell: bash
 
-#  apply:
-#    needs: plan
-#    runs-on: ubuntu-latest
-#    defaults:
-#      run:
-#        working-directory: data_processing/infra
-#    env:
-#      AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
-#      AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
-#      AWS_SESSION_TOKEN: ${{ secrets.aws_session_token }}
-#    steps:
-#      - uses: actions/checkout@v3
-#      - uses: hashicorp/setup-terraform@v2
-#        with:
-#          terraform_version: '1.10.3'
-#      - run: |
-#          sudo apt-get update
-#          sudo apt-get install -y sops
-#      - run: sops -d config/secrets.enc.yaml > config/secrets.yaml
-#        shell: bash
-#      - run: terraform init
-#      - run: terraform apply -auto-approve
-#      - run: shred -u config/secrets.yaml || true
-#        if: always()
-#        shell: bash
+  apply:
+    needs: plan
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: data_processing/infra
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
+      AWS_SESSION_TOKEN: ${{ secrets.aws_session_token }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.10.3'
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y sops
+      - run: sops -d config/secrets.enc.yaml > config/secrets.yaml
+        shell: bash
+      - run: terraform init
+      - run: terraform apply -auto-approve
+      - run: shred -u config/secrets.yaml || true
+        if: always()
+        shell: bash
