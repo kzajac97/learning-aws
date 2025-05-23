@@ -12,6 +12,8 @@ module "receiver_lambda" {
 
   max_parallel_executions = 1
 
+  layers = ["arn:aws:lambda:${var.aws_region}:336392948345:layer:AWSSDKPandas-Python313:1"]
+
   env_variables = {
     SQS_URL        = aws_sqs_queue.sensor_queue.id
     INPUT_BUCKET   = aws_s3_bucket.sensor_data.bucket
