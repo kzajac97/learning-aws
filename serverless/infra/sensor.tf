@@ -15,8 +15,9 @@ module "sensor_lambda" {
   max_parallel_executions = floor(0.4 * local.config["lambdas"]["max_parallel_executions"])
 
   env_variables = {
-    SNS_TOPIC_ARN         = aws_sns_topic.sensor_notifications.arn
-    SENSOR_REGISTRY_TABLE = aws_dynamodb_table.sensor_registry.name
-    SQS_URL               = aws_sqs_queue.sensor_queue.id
+    SNS_TOPIC_ARN            = aws_sns_topic.sensor_notifications.arn
+    SENSOR_REGISTRY_TABLE    = aws_dynamodb_table.sensor_registry.name
+    SQS_URL                  = aws_sqs_queue.sensor_queue.id
+    LAMBDA_IDEMPOTENCY_TABLE = aws_dynamodb_table.sensor_lambda_persistence_layer.name
   }
 }

@@ -1,6 +1,7 @@
 import enum
 import json
 import os
+from typing import Any
 
 import awswrangler as wr
 import pandas as pd
@@ -21,11 +22,11 @@ class Source(enum.StrEnum):
     event = "EVENT"
 
 
-def receive_message(context: Context) -> list:
+def receive_message(sqs_url: str, sqs_client: Any) -> list:
     messages = []
     while True:
-        response = context.sqs_client.receive_message(
-            QueueUrl=context.sqs_url,
+        response = sqs_client.receive_message(
+            QueueUrl=sqs_url,
             MaxNumberOfMessages=10,
             WaitTimeSeconds=0,
         )
@@ -34,7 +35,7 @@ def receive_message(context: Context) -> list:
             break
         for message in response["Messages"]:
             messages.append(json.loads(message["Body"]))
-            context.sqs_client.delete_message(QueueUrl=context.sqs_url, ReceiptHandle=message["ReceiptHandle"])
+            context.sqs_client.delete_message(QueueUrl=sqs_url, ReceiptHandle=message["ReceiptHandle"])
         if len(response["Messages"]) < 10:
             break
 
@@ -48,7 +49,7 @@ def handler(event, _):
         data = wr.s3.read_csv(f"s3://{context.input_bucket}/{event['key']}")
 
     elif event["source"] == Source.sqs.value:
-        messages = receive_message(context)
+        messages = receive_message(context.sqs_url, context.sqs_client)
         logger.info(f"Received {len(messages)} messages from SQS")
         data = pd.DataFrame(messages)
     else:

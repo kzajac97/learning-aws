@@ -8,13 +8,16 @@ import sns
 import sqs
 from context import Context
 from aws_lambda_powertools import Logger
+from aws_lambda_powertools.utilities.idempotency import DynamoDBPersistenceLayer, idempotent
 
 
 logger = Logger("sensor_lambda")
 context = Context.from_dict(dict(os.environ))
+persistence_store = DynamoDBPersistenceLayer(table_name=context.idempotency_table)
 
 
 @logger.inject_lambda_context(log_event=True)
+@idempotent(persistence_store=persistence_store)
 def lambda_handler(event, _):
     logger.info(f"Received event: {event}")
     sensor_registry = dynamodb.SensorRegistryClient(context.dynamo_db_client, table_name=context.sensor_registry_table)
