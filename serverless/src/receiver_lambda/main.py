@@ -1,24 +1,24 @@
 import enum
 import json
-import logging
 import os
 
 import awswrangler as wr
 import pandas as pd
-from context import Context
-from logger import setup_logging
+from aws_lambda_powertools import Logger
 
-setup_logging()
-context = Context.from_dict(os.environ)
+from context import Context
+
+logger = Logger("receiver_lambda")
+context = Context.from_dict(dict(os.environ))
 
 MAX_PAYLOAD_SIZE = 262144  # 256 KB -> hard limit from Step Functions
 BUFFER = int(0.1 * MAX_PAYLOAD_SIZE)  # 10% buffer to be safe
 
 
-class Source(enum.Enum):
-    s3: str = "S3"
-    sqs: str = "SQS"
-    event: str = "EVENT"
+class Source(enum.StrEnum):
+    s3 = "S3"
+    sqs = "SQS"
+    event = "EVENT"
 
 
 def receive_message(context: Context) -> list:
@@ -41,27 +41,28 @@ def receive_message(context: Context) -> list:
     return messages
 
 
+@logger.inject_lambda_context(log_event=True)
 def handler(event, _):
     if event["source"] == Source.s3.value:
-        logging.info("Received event from S3")
+        logger.info("Received event from S3")
         data = wr.s3.read_csv(f"s3://{context.input_bucket}/{event['key']}")
 
     elif event["source"] == Source.sqs.value:
         messages = receive_message(context)
-        logging.info(f"Received {len(messages)} messages from SQS")
+        logger.info(f"Received {len(messages)} messages from SQS")
         data = pd.DataFrame(messages)
     else:
-        logging.error(f"Unknown source: {event['source']}")
+        logger.error(f"Unknown source: {event['source']}")
         raise RuntimeError(f"Unknown source: {event['source']}")
 
     if data.empty:
-        logging.warning(f"Did not receive any data from {event['source']}")
+        logger.warning(f"Did not receive any data from {event['source']}")
         return {"status_code": 204}
 
     grouped = data.groupby("location_id")
 
     batches = [group[["temperature", "timestamp"]] for _, group in grouped]
-    logging.info(f"Created {len(batches)} batches")
+    logger.info(f"Created {len(batches)} batches")
 
     json_batches = [batch.to_dict("records") for batch in batches]
     payload = {
@@ -73,7 +74,7 @@ def handler(event, _):
 
     if payload_size > (MAX_PAYLOAD_SIZE - BUFFER):
         s3_keys = []
-        for index, batch in enumerate(batches):  # write batches to S3, each as CSV file
+        for index, batch in enumerate(batches):  # write batches to S3, each as a CSV file
             path = f"s3://{context.payload_bucket}/batch-{index}.csv"
             wr.s3.to_csv(batch, path)
             s3_keys.append(path)
