@@ -58,12 +58,13 @@ def mock_env(mocked_sqs):
         "SQS_URL": queue_url,
         "INPUT_BUCKET": settings.INPUT_BUCKET_NAME,
         "PAYLOAD_BUCKET": settings.PAYLOAD_BUCKET_NAME,
-        "AWS_REGION": "us-east-1",
+        "AWS_REGION": settings.TEST_AWS_REGION,
+        "AWS_PROFILE_NAME": settings.TEST_AWS_PROFILE_NAME,
     }
 
 
 @pytest.mark.parametrize(
-    ["num_csv_rows", "num_locations"],
+    ["num_rows", "num_locations"],
     (
         (10, 2),
         (20, 5),
@@ -72,9 +73,9 @@ def mock_env(mocked_sqs):
         (100, 20),
     ),
 )
-def test_receiver_lambda_handler_s3(num_csv_rows: int, num_locations: int, mock_env, mocked_s3, lambda_context, mocker):
+def test_receiver_lambda_handler_s3(num_rows: int, num_locations: int, mock_env, mocked_s3, lambda_context, mocker):
     mocker.patch.dict(os.environ, mock_env, clear=True)  # patch environment variables before importing handler
-    prepare_s3_input(num_locations, num_csv_rows)
+    prepare_s3_input(num_locations, num_rows)
 
     from src.receiver_lambda.main import handler
 
@@ -86,7 +87,7 @@ def test_receiver_lambda_handler_s3(num_csv_rows: int, num_locations: int, mock_
 
 
 @pytest.mark.parametrize(
-    ["num_csv_rows", "num_locations"],
+    ["num_rows", "num_locations"],
     (
         (10, 2),
         (100, 5),
@@ -95,11 +96,9 @@ def test_receiver_lambda_handler_s3(num_csv_rows: int, num_locations: int, mock_
         (1000, 100),
     ),
 )
-def test_receiver_lambda_handler_sqs(
-    num_csv_rows: int, num_locations: int, mock_env, mocked_s3, lambda_context, mocker
-):
+def test_receiver_lambda_handler_sqs(num_rows: int, num_locations: int, mock_env, mocked_sqs, lambda_context, mocker):
     mocker.patch.dict(os.environ, mock_env, clear=True)  # patch environment variables before importing handler
-    prepare_sqs_input(num_locations, num_csv_rows)
+    prepare_sqs_input(num_locations, num_rows)
 
     from src.receiver_lambda.main import handler
 

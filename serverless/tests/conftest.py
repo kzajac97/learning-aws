@@ -30,8 +30,6 @@ def mocked_sqs(mocked_aws):
     queue_url = sqs.create_queue(QueueName=settings.QUEUE_NAME)["QueueUrl"]
     yield sqs, queue_url
 
-    sqs.delete_queue(QueueUrl=queue_url)
-
 
 @pytest.fixture
 def lambda_context():
