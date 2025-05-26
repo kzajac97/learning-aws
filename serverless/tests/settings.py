@@ -1,0 +1,4 @@
+TEST_AWS_REGION = "us-east-1"
+INPUT_BUCKET_NAME = "test-sfn-input-bucket"
+PAYLOAD_BUCKET_NAME = "test-sfn-payload-bucket"
+QUEUE_NAME = "test-sfn-queue"
