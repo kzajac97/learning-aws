@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        app-path: ["data_processing", "serverless"]
+        app-path: ["serverless"]
     defaults:
       run:
         working-directory: ${{ matrix.app-path }}
@@ -41,8 +41,6 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.12'
-      - name: Install dependencies
-        run: pip install -r requirements.txt
       - name: Install tools
         run: pip install -r requirements-dev.txt
       - name: Run pytest

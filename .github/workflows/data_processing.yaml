@@ -47,8 +47,10 @@ jobs:
         with:
           terraform_version: '1.10.3'
       - run: |
-          sudo apt-get update
-          sudo apt-get install -y sops
+          SOPS_VERSION="v3.8.1"
+          curl -sSL https://github.com/getsops/sops/releases/download/${SOPS_VERSION}/sops-${SOPS_VERSION}.linux.amd64 -o /usr/local/bin/sops
+          chmod +x /usr/local/bin/sops
+        shell: bash
       - run: sops -d config/secrets.enc.yaml > config/secrets.yaml
         shell: bash
       - run: terraform init

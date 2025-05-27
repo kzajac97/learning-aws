@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 from datetime import datetime as dt
 
@@ -8,14 +7,19 @@ import sensor
 import sns
 import sqs
 from context import Context
-from logger import setup_logging
-
-setup_logging()
-context = Context.from_dict(os.environ)
+from aws_lambda_powertools import Logger
+from aws_lambda_powertools.utilities.idempotency import DynamoDBPersistenceLayer, idempotent
 
 
+logger = Logger("sensor_lambda")
+context = Context.from_dict(dict(os.environ))
+persistence_store = DynamoDBPersistenceLayer(table_name=context.idempotency_table)
+
+
+@logger.inject_lambda_context(log_event=True)
+@idempotent(persistence_store=persistence_store)
 def lambda_handler(event, _):
-    logging.info(f"Received event: {event}")
+    logger.info(f"Received event: {event}")
     sensor_registry = dynamodb.SensorRegistryClient(context.dynamo_db_client, table_name=context.sensor_registry_table)
 
     sensor_id = str(event["sensor_id"])
@@ -23,21 +27,21 @@ def lambda_handler(event, _):
     r = float(event["value"])
 
     if not sensor_registry.exists(sensor_id):
-        # assume sensor is working ok, when it is first registered
+        # assume the sensor is working ok, when it is first registered
         sensor_registry.put_item(sensor_id, working_ok=True)
 
     if not sensor_registry.get_item(sensor_id).get("working_ok"):
         return {"status_code": 204}  # sensor is not working, ignore the event
 
-    if not sensor.is_in_range(r):  # current reading is out of range
-        sensor_registry.update_item(sensor_id, working_ok=False)  # mark sensor as not working
+    if not sensor.is_in_range(r):  # the current reading is out of range
+        sensor_registry.update_item(sensor_id, working_ok=False)  # mark the sensor as not working
         return {"status_code": 204}
 
     temperature = sensor.compute_temperature(r)
     status = sensor.get_status(temperature)
 
-    logging.info(f"Sensor {sensor_id} has temperature {temperature} and status {status.value} at {location_id}")
-    logging.info("Forwarding message to SQS")
+    logger.info(f"Sensor {sensor_id} has temperature {temperature} and status {status.value} at {location_id}")
+    logger.info("Forwarding message to SQS")
     sqs.send_message(context, sensor_id, location_id, temperature, status)
 
     if status == sensor.SensorStatus.TEMPERATURE_CRITICAL:

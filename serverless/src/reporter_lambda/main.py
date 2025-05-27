@@ -1,25 +1,25 @@
 import enum
-import logging
 
 import awswrangler as wr
 import pandas as pd
-from logger import setup_logging
+from aws_lambda_powertools import Logger
 
-setup_logging()
+logger = Logger("receiver_lambda")
+
+
+class Source(enum.StrEnum):
+    s3 = "S3"
+    event = "EVENT"
 
 
 def event_to_message(event: dict) -> dict:
-    """Make event readable in logs (remove the very long values under batch key)"""
+    """Make event readable in logs (remove the very long values under a batch key)"""
     return {k: v for k, v in event.items() if k != "batch"}
 
 
-class Source(enum.Enum):
-    s3: str = "S3"
-    event: str = "EVENT"
-
-
+@logger.inject_lambda_context(log_event=True)
 def handler(event: dict, _):
-    logging.info(f"Received event from {event_to_message(event)}")
+    logger.info(f"Received event from {event_to_message(event)}")
 
     if event["source"] == Source.s3.value:
         data = wr.s3.read_csv(event["batch"])

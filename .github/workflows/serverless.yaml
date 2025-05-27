@@ -48,7 +48,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: echo Using config from $CONFIG_PATH
-      - run: echo "${pythonLocation}/bin" >> $GITHUB_PATH
       - uses: gruntwork-io/terragrunt-action@v2
         env:
           # Run apt-get inside the container to allow using python in local-exec of terraform

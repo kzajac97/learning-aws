@@ -10,7 +10,6 @@ class Context:
     input_bucket: str
     payload_bucket: str
 
-    aws_profile: str
     aws_region: str
 
     sqs_client: Any
@@ -18,16 +17,13 @@ class Context:
 
     @classmethod
     def from_dict(cls, env: dict) -> Self:
-        aws_profile = env.get("AWS_PROFILE_NAME")  # for local use
         aws_region = env["AWS_REGION"]
-        session = boto3.Session(profile_name=aws_profile, region_name=aws_region)
 
         return cls(
             sqs_url=env["SQS_URL"],
             input_bucket=env["INPUT_BUCKET"],
             payload_bucket=env["PAYLOAD_BUCKET"],
-            aws_profile=aws_profile,
             aws_region=aws_region,
-            sqs_client=session.client("sqs"),
-            s3_client=session.client("s3"),
+            sqs_client=boto3.client("sqs", region_name=aws_region),
+            s3_client=boto3.client("s3", region_name=aws_region),
         )
