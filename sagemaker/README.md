@@ -48,8 +48,8 @@ similarly regular to AWS Lambda.
 Batch transform is used to run model with inputs stored on S3 and outputs send to S3. It is most useful for large
 datasets, when the response does not need to be in real-time. Inputs and outputs are stored in JSON lines files.
 
-Batch transform uses multi-model container under the hood, which means that it can run multiple models in parallel. The
-serving component of multi-model server is written in Java, and it is open source (see: [https://github.com/awslabs/multi-model-server](https://github.com/awslabs/multi-model-server)).
+Batch transform uses multimodel container under the hood, which means that it can run multiple models in parallel. The
+serving component of multimodel server is written in Java, and it is open source (see: [https://github.com/awslabs/multi-model-server](https://github.com/awslabs/multi-model-server)).
 It means, that running a batch transform on a single instance with 4 vCPUs will run 4 copies of the model in parallel
 and aggregate the results. Moreover, batch transform can handle running multiple machines in a single job, for which
 it is best to split the json-lines file into multiple smaller ones to easily associate the results with the inputs.
