@@ -6,9 +6,9 @@ has number of features and is deployed using terragrunt with parameterized confi
 ### Components
 
 1. Sensor Lambda - function is an example of IoT ingest from remote sensor, doing simple calculation
-2. SQS - communication layer between sensor and analytics module
-3. Analytics - step-function processing inputs from SQS and computing moving-averages in time, uses 2 Lambda functions
-4. DynamoDB - storage for broken sensors, used by sensor lambda
+2. DynamoDB - storage for broken sensors, used by sensor lambda
+3. SQS - communication layer between sensor and analytics module
+4. Analytics - step-function processing inputs from SQS and computing moving-averages in time, uses 2 Lambda functions
 5. Trigger Sensor Script - script simulating real-world data generating process, by sending requests with random inputs with random intervals
 6. Terraform Lambda Module - generic IaC set-up for Lambda functions, used by all Lambda functions in the application
 7. Terragrunt - IaC orchestrator for terraform using configuration parameterized by YAML files to deploy `dev` and `prod` environments
@@ -17,13 +17,13 @@ has number of features and is deployed using terragrunt with parameterized confi
 
 Sensor Lambda is an example function, which simulates endpoint for receiving measurements from IoT sensor network. Each
 measurement is simulating the resistance on termo-resistor, allowing to compute the temperature for known coefficients 
-following the Steinhart–Hart equation.
+following the Steinhart–Hart equation [1].
 
 ### Flow
 
 The flow of function is the following:
 1. Load input JSON.
-2. Check `sensor_id` in DynamoDB with registry of broken sensors.
+2. Check `sensor_id` in DynamoDB with registry of broken sensors, add `sensor_id` to registry, if it is seen first time.
 3. Check, if given input is in acceptable range and mark sensor as broken, when it is not.
 4. Compute the Temperature using the simulation (equation below).
 5. Write message to SQS.
@@ -33,9 +33,7 @@ The flow of function is the following:
 **Note**: Details on the values of temperature to meet given status are irrelevant, they should serve as an example.
 Details values can be found directly in the code and changed, if needed.
 
-### Simulation
-
-To compute the temperature, sensor computes the following equation.
+### Equation
 
 $$
 \frac{1}{T} = a + bln(R)+c(lnR)^3
@@ -43,3 +41,32 @@ $$
 
 $a$, $b$ and $c$ are constants specific for given material. Values assumed for the simulation are: $a = 1.40 \cdot 10^{-3}$,
 $b=2.37 \cdot 10^{-4}$ and $9.90 \cdot 10^{-8}$.
+
+# DynamoDB
+
+DynamoDB is used as storage for broken sensors to prevent race conditions. Schema of DynamoDB is very simple, it
+contains only the `primary_key` as `sensor_id` and keep register of all sensors with boolean `broken` column. The sensor
+registry is meant to be read at row level only, each lambda accessing single record at a time.
+
+DynamoDB with its fast read and write capacity should handle the cases, when 2 lambda executions get the measurement
+from the same sensor at similar time. In case a sensor is marked as broken, there is no way of changing it back to
+working. 
+
+### Idempotency Layer
+
+The sensor Lambda is used in simulated IoT network, so additional idempotency layer is used to prevent double executions
+on the same input, as could happen in real case of IoT. The property of idempotency means that an operation does not
+cause additional side effects if it is called more than once with the same input parameters. This is done using AWS
+Lambda Powertools library [2], the implementation details can be found in the documentation of the library.
+
+# References
+
+<a id="1">[1]</a> 
+Wikipedia 
+*Steinhart–Hart equation*
+https://en.wikipedia.org/wiki/Steinhart%E2%80%93Hart_equation
+
+<a id="2">[2]</a> 
+Powertools for Lambda (Python)
+*Idempotency*
+https://docs.powertools.aws.dev/lambda/python/latest/utilities/idempotency/
