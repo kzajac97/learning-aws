@@ -59,6 +59,73 @@ on the same input, as could happen in real case of IoT. The property of idempote
 cause additional side effects if it is called more than once with the same input parameters. This is done using AWS
 Lambda Powertools library [2], the implementation details can be found in the documentation of the library.
 
+# SQS
+
+The goal of SQS is to decouple the sensor Lambda from the analytics module. The sensor Lambda writes messages to SQS, 
+after each successful execution. The visibility timeout of SQS is set to `message_retention_seconds`, which is
+configurable (different values for `dev` and `prod`). This time is also the interval, between runs of the analytics
+module (step function). The goal is to process all messages once.
+
+# Analytics 
+
+### Inputs
+This module reads straight from the SQS and is triggered by CRON, with the goal of processing all measurements (messages),
+which were added after the last run. Additionally, it is possible to trigger the SFN using static S3 input, which should
+be used for development.
+
+### Tests
+
+Two lambda function have unit-tests implemented, using `moto` library for mocking entire AWS. Those are run using `pytest`
+and are added to GitHub actions workflow. To run the tests locally, simply use `pytest` with the development
+requirements installed:
+
+```bash
+cd serverless
+pip install -r requirements-dev.txt
+pytest tests
+```
+
+# Trigger Sensor Script
+
+This script is used to simulate the real-world data generating process, by sending requests with random inputs with
+random intervals. It is meant to be used in development and testing of the application, to simulate the IoT network.
+
+The script uses random uniform distribution for both resistance values and delay between requests.
+
+### Config
+
+The trigger script is configured using YAML file, which contains the following parameters:
+```yaml
+meta:
+  locations: 8  # number of locations to simulate
+  sensors: 1000  # number of sensors to simulate in each location
+sensor:
+  min_r: 0.1  # minimum resistance of the sensor
+  max_r: 20500  # maximum resistance of the sensor
+timer:
+  total_runtime_seconds: 10  # total runtime of the script in seconds
+  min_delay_seconds: 1  # minimum delay between requests in seconds
+  max_delay_seconds: 10  # maximum delay between requests in seconds
+```
+
+# Terraform Lambda Module
+
+This module creates a simple AWS Lambda function using python and ZIP source code. It allows configuring the core
+runtime properties, such as handler, python version (will not work with other runtimes, due to `pip` usage) and timeout.
+
+**Note**: The detailed README for this module can be found in the `infra/modules/lambda/README.md` file.
+
+# Terragrunt
+
+Terragrunt is used maily to show-case infrastructure parameterization and reusability [3]. The config is managed by the
+YAML file, which is read as path from env variable, allowing the terragrunt to be run with many possible configs.
+
+Currently, `dev` and `prod` environments are supported, with different parameters for the resources. Additionally, 
+GitHub actions workflow is configured to run with dispatch, allowing to select the environment to deploy. There is no
+automatic deployment, so the user needs to trigger the deployment manually (learning purpose of the repository).
+
+The infrastructure generates very small cost at rest, for most purposes it should be free.
+
 # References
 
 <a id="1">[1]</a> 
@@ -70,3 +137,8 @@ https://en.wikipedia.org/wiki/Steinhart%E2%80%93Hart_equation
 Powertools for Lambda (Python)
 *Idempotency*
 https://docs.powertools.aws.dev/lambda/python/latest/utilities/idempotency/
+
+<a id="3">[3]</a>
+Terragrunt
+*Terragrunt*
+https://terragrunt.gruntwork.io/
