@@ -16,6 +16,8 @@ SQL database, hosted on Amazon RDS. All transformations are done in PySpark and 
 7. Glue ETL Terraform Module - generic IaC set-up for Glue ETL jobs, used by all Glue jobs in the application.
 8. SOPS - tool for managing secrets, used to store database credentials in encrypted format.
 
+![Data Processing Flow Diagram](../.assets/dps.png)
+
 # Layout
 
 * `infra`
