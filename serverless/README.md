@@ -85,6 +85,14 @@ pip install -r requirements-dev.txt
 pytest tests
 ```
 
+### Flow
+
+Step function workflow is given on the diagram, it consists of two Lambda functions:
+1. Receiver Lambda - groups the measurements by sensor and send the payload to next step
+2. Reporter Lambda - computes the moving average for all measurements in single location
+
+![Step Function Diagram](../.assets/sfn.png)
+
 # Trigger Sensor Script
 
 This script is used to simulate the real-world data generating process, by sending requests with random inputs with
