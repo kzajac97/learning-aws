@@ -7,7 +7,7 @@ SQL database, hosted on Amazon RDS. All transformations are done in PySpark and 
 ### Components
 
 1. AWS Glue Data Catalog - metadata store for the data, used to store table definitions for raw CSV data, structured
-   data and normalized data. 
+   data and normalized data.
 2. Glue ETL Ingest Workflow - PySpark script for transforming raw CSV data into structured schema and storing it in Glue Data Catalog.
 3. Glue ETL Transform Workflow - PySpark script for transforming structured data into normalized schema and storing it on S3 as parquet files.
 4. Amazon RDS - PostgreSQL database for storing normalized data, with table definitions and data insertion script.
@@ -108,7 +108,7 @@ SOPS (Secrets OPerationS) is a tool for managing secrets in a secure way [5]. It
 containing sensitive information, such as database credentials. In this application SOPS is used to store the database
 credentials in encrypted format, which can be decrypted using the `sops` command.
 
-The config (with secrets) is stored in `infra/config/secrets.yaml` file, which is encrypted using SOPS and only the 
+The config (with secrets) is stored in `infra/config/secrets.yaml` file, which is encrypted using SOPS and only the
 encrypted version is committed to the repository. The secrets can be decrypted using the `sops` command, which requires
 the AWS KMS key to decrypt. This key is added via `backend` application (in terraform), and its ARN is given in the
 `infra/config/.sops.yaml` file.
@@ -147,7 +147,7 @@ Amazon RDS
 *What is Amazon RDS?*
 https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Overview.html
 
-<a id="5">[5]</a> 
-GitHub 
+<a id="5">[5]</a>
+GitHub
 *SOPS*
 https://github.com/getsops/sops

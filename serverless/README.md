@@ -16,7 +16,7 @@ has number of features and is deployed using terragrunt with parameterized confi
 # Sensor Lambda
 
 Sensor Lambda is an example function, which simulates endpoint for receiving measurements from IoT sensor network. Each
-measurement is simulating the resistance on termo-resistor, allowing to compute the temperature for known coefficients 
+measurement is simulating the resistance on termo-resistor, allowing to compute the temperature for known coefficients
 following the Steinhart–Hart equation [1].
 
 ### Flow
@@ -50,7 +50,7 @@ registry is meant to be read at row level only, each lambda accessing single rec
 
 DynamoDB with its fast read and write capacity should handle the cases, when 2 lambda executions get the measurement
 from the same sensor at similar time. In case a sensor is marked as broken, there is no way of changing it back to
-working. 
+working.
 
 ### Idempotency Layer
 
@@ -61,12 +61,12 @@ Lambda Powertools library [2], the implementation details can be found in the do
 
 # SQS
 
-The goal of SQS is to decouple the sensor Lambda from the analytics module. The sensor Lambda writes messages to SQS, 
+The goal of SQS is to decouple the sensor Lambda from the analytics module. The sensor Lambda writes messages to SQS,
 after each successful execution. The visibility timeout of SQS is set to `message_retention_seconds`, which is
 configurable (different values for `dev` and `prod`). This time is also the interval, between runs of the analytics
 module (step function). The goal is to process all messages once.
 
-# Analytics 
+# Analytics
 
 ### Inputs
 This module reads straight from the SQS and is triggered by CRON, with the goal of processing all measurements (messages),
@@ -128,7 +128,7 @@ runtime properties, such as handler, python version (will not work with other ru
 Terragrunt is used maily to show-case infrastructure parameterization and reusability [3]. The config is managed by the
 YAML file, which is read as path from env variable, allowing the terragrunt to be run with many possible configs.
 
-Currently, `dev` and `prod` environments are supported, with different parameters for the resources. Additionally, 
+Currently, `dev` and `prod` environments are supported, with different parameters for the resources. Additionally,
 GitHub actions workflow is configured to run with dispatch, allowing to select the environment to deploy. There is no
 automatic deployment, so the user needs to trigger the deployment manually (learning purpose of the repository).
 
@@ -136,12 +136,12 @@ The infrastructure generates very small cost at rest, for most purposes it shoul
 
 # References
 
-<a id="1">[1]</a> 
-Wikipedia 
+<a id="1">[1]</a>
+Wikipedia
 *Steinhart–Hart equation*
 https://en.wikipedia.org/wiki/Steinhart%E2%80%93Hart_equation
 
-<a id="2">[2]</a> 
+<a id="2">[2]</a>
 Powertools for Lambda (Python)
 *Idempotency*
 https://docs.powertools.aws.dev/lambda/python/latest/utilities/idempotency/
