@@ -31,6 +31,29 @@ def mocked_sqs(mocked_aws):
     yield sqs, queue_url
 
 
+@pytest.fixture(scope="function")
+def mocked_dynamodb(mocked_aws):
+    dynamodb = boto3.client("dynamodb", region_name=settings.TEST_AWS_REGION)
+
+    # Create the sensor registry table
+    dynamodb.create_table(
+        TableName=settings.SENSOR_REGISTRY_TABLE,
+        KeySchema=[{"AttributeName": "sensor_id", "KeyType": "HASH"}],
+        AttributeDefinitions=[{"AttributeName": "sensor_id", "AttributeType": "S"}],
+        ProvisionedThroughput={"ReadCapacityUnits": 5, "WriteCapacityUnits": 5},
+    )
+
+    # Create the idempotency table
+    dynamodb.create_table(
+        TableName=settings.IDEMPOTENCY_TABLE,
+        KeySchema=[{"AttributeName": "idempotency_key", "KeyType": "HASH"}],
+        AttributeDefinitions=[{"AttributeName": "idempotency_key", "AttributeType": "S"}],
+        ProvisionedThroughput={"ReadCapacityUnits": 5, "WriteCapacityUnits": 5},
+    )
+
+    yield dynamodb
+
+
 @pytest.fixture
 def lambda_context():
     context_data = {
