@@ -32,6 +32,16 @@ def mocked_sqs(mocked_aws):
 
 
 @pytest.fixture(scope="function")
+def mocked_sns(mocked_aws):
+    sns = boto3.client("sns", region_name=settings.TEST_AWS_REGION)
+
+    topic = sns.create_topic(Name=settings.TOPIC_NAME)
+    topic_arn = topic["TopicArn"]
+
+    yield sns, topic_arn
+
+
+@pytest.fixture(scope="function")
 def mocked_dynamodb(mocked_aws):
     dynamodb = boto3.client("dynamodb", region_name=settings.TEST_AWS_REGION)
 
