@@ -11,6 +11,7 @@ class Context:
     sensor_registry_table: str
     sns_topic_arn: str
     sqs_url: str
+    idempotency_table: str
     dynamo_db_client: "boto3.client.dynamodb"
     sqs_client: "boto3.client.sqs"
 
@@ -26,6 +27,7 @@ class Context:
             sensor_registry_table=env["SENSOR_REGISTRY_TABLE"],
             sns_topic_arn=env["SNS_TOPIC_ARN"],
             sqs_url=env["SQS_URL"],
+            idempotency_table=env["LAMBDA_IDEMPOTENCY_TABLE"],
             dynamo_db_client=session.client("dynamodb", region_name=aws_region),
             sqs_client=session.client("sqs", region_name=aws_region),
         )

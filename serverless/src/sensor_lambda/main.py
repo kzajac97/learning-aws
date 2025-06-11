@@ -18,7 +18,15 @@ persistence_store = DynamoDBPersistenceLayer(table_name=context.idempotency_tabl
 
 @logger.inject_lambda_context(log_event=True)
 @idempotent(persistence_store=persistence_store)
-def lambda_handler(event, _):
+def handler(event, _):
+    main(event)
+
+
+def main(event: dict):
+    """
+    Main logic of the Lambda handler, unwrapped from the AWS Lambda specific settings (idempotency, logger etc.)
+    `context` is initialized on module initialization, to be reused between execution environments.
+    """
     logger.info(f"Received event: {event}")
     sensor_registry = dynamodb.SensorRegistryClient(context.dynamo_db_client, table_name=context.sensor_registry_table)
 
