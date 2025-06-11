@@ -1,6 +1,7 @@
 # AWS
 TEST_AWS_REGION = "us-east-1"
 TEST_AWS_PROFILE_NAME = "default"
+TIME = "2025-01-01T00:00:00"
 # S3
 INPUT_BUCKET_NAME = "test-sfn-input-bucket"
 PAYLOAD_BUCKET_NAME = "test-sfn-payload-bucket"
