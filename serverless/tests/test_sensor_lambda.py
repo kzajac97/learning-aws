@@ -18,6 +18,9 @@ def source_root():
 
 def prepare_dynamodb(dynamodb, table_name: str, content: list[dict]):
     """Prepare the mocked sensor_registry DynamoDB table with the given content."""
+    if not content:
+        return  # empty DynamoDB table
+
     for item in content:
         if content:
             pk = item.get("sensor_id")
@@ -44,6 +47,20 @@ def assert_dynamodb(dynamodb, table_name: str, expected_content: list[dict]):
             break
 
     assert items == expected_content
+
+
+def assert_sqs(sqs, expected_messages: list[dict] | None):
+    """Assert that the mocked SQS queue contains the expected messages."""
+    if not expected_messages:
+        return  # no messages expected
+
+    client, queue_url = sqs
+    messages = client.receive_message(QueueUrl=queue_url)
+
+    for message, expected in zip(messages["Messages"], expected_messages):
+        message_body = json.loads(message.get("Body", "{}"))
+        message_body.pop("temperature")  # do not assert exact quality on temperature
+        assert message_body == expected  # check message content one by one
 
 
 @pytest.fixture(scope="function")
@@ -76,12 +93,12 @@ def mock_env(mocked_dynamodb, mocked_sns, mocked_sqs):
         # test case 1: temperature in range with new sensor
         (
             {"sensor_id": "1", "location_id": "A", "value": 2000},  # event
-            {},  # empty dynamodb_content
+            None,  # empty dynamodb_content
             200,
             {"sensor_id": "1", "location_id": "A", "status": "OK", "timestamp": settings.TIME},
             [{"sensor_id": {"S": "1"}, "working_ok": {"BOOL": True}}],  # expected_dynamodb_content
-            [],  # expected_sns_messages
-            [],  # expected_sqs_messages
+            None,
+            [{"sensor_id": "1", "location_id": "A", "status": "OK", "timestamp": "2025-01-01T00:00:00"}],  # sqs
         ),
         # test case 2: temperature in range with existing sensor
         (
@@ -90,8 +107,8 @@ def mock_env(mocked_dynamodb, mocked_sns, mocked_sqs):
             200,
             {"sensor_id": "2", "location_id": "A", "status": "OK", "timestamp": settings.TIME},
             [{"sensor_id": {"S": "2"}, "working_ok": {"BOOL": True}}],  # expected_dynamodb_content
-            [],  # expected_sns_messages
-            [],  # expected_sqs_messages
+            None,  # expected_sns_messages
+            [{"sensor_id": "2", "location_id": "A", "status": "OK", "timestamp": "2025-01-01T00:00:00"}],  # sqs
         ),
         # test case 3: temperature in range with broken sensor
         (
@@ -100,18 +117,18 @@ def mock_env(mocked_dynamodb, mocked_sns, mocked_sqs):
             204,
             {},  # no response body
             [{"sensor_id": {"S": "3"}, "working_ok": {"BOOL": False}}],  # expected_dynamodb_content
-            [],  # expected_sns_messages
-            [],  # expected_sqs_messages
+            None,  # expected_sns_messages
+            None,  # nothing in SQS -> sensor is broken
         ),
         # test case 4: temperature out of range with new sensor
         (
             {"sensor_id": "4", "location_id": "A", "value": 25_000},  # event
-            {},  # empty dynamodb
+            None,  # empty dynamodb
             204,
             {},  # no response body
             [{"sensor_id": {"S": "4"}, "working_ok": {"BOOL": False}}],  # expected_dynamodb_content
-            [],  # expected_sns_messages
-            [],  # expected_sqs_messages
+            None,  # expected_sns_messages
+            None,  # nothing is SQS -> sensor is broken
         ),
         # test case 5: temperature out of range with existing sensor
         (
@@ -121,8 +138,47 @@ def mock_env(mocked_dynamodb, mocked_sns, mocked_sqs):
             {},  # no response body
             # expected_dynamodb_content -> sensor is now marked as broken
             [{"sensor_id": {"S": "5"}, "working_ok": {"BOOL": False}}],
-            [],  # expected_sns_messages
-            [],  # expected_sqs_messages
+            None,  # expected_sns_messages
+            None,  # nothing in SQS -> sensor is broken
+        ),
+        # # test case 6: temperature too low with new sensor
+        (
+            {"sensor_id": "6", "location_id": "A", "value": 15_000},  # event
+            None,  # empty dynamodb_content
+            200,
+            {"sensor_id": "6", "location_id": "A", "status": "TEMPERATURE_TOO_LOW", "timestamp": "2025-01-01T00:00:00"},
+            [{"sensor_id": {"S": "6"}, "working_ok": {"BOOL": True}}],  # expected_dynamodb_content
+            None,  # expected_sns_messages
+            [
+                {
+                    "sensor_id": "6",
+                    "location_id": "A",
+                    "status": "TEMPERATURE_TOO_LOW",
+                    "timestamp": "2025-01-01T00:00:00",
+                }
+            ],  # fmt: off
+        ),
+        # test case 7: temperature too high with new sensor
+        (
+            {"sensor_id": "7", "location_id": "A", "value": 500},  # event
+            None,  # empty dynamodb_content
+            200,
+            {
+                "sensor_id": "7",
+                "location_id": "A",
+                "status": "TEMPERATURE_TOO_HIGH",
+                "timestamp": "2025-01-01T00:00:00",
+            },
+            [{"sensor_id": {"S": "7"}, "working_ok": {"BOOL": True}}],  # expected_dynamodb_content
+            None,  # expected_sns_messages
+            [
+                {
+                    "sensor_id": "7",
+                    "location_id": "A",
+                    "status": "TEMPERATURE_TOO_HIGH",
+                    "timestamp": "2025-01-01T00:00:00",
+                }
+            ],  # fmt: off
         ),
     ),
 )
@@ -159,3 +215,4 @@ def test_sensor_lambda(
     assert body == expected_response
     # assert AWS resources behave as expected
     assert_dynamodb(mocked_dynamodb, settings.SENSOR_REGISTRY_TABLE, expected_dynamodb_content)
+    assert_sqs(mocked_sqs, expected_sqs_messages)
