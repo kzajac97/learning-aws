@@ -1,11 +1,19 @@
 import os
 import json
+import sys
 from typing import Any
 
 import freezegun
 import pytest
 
 from tests import settings
+
+
+@pytest.fixture(scope="function")
+def source_root():
+    sys.path.append("src/sensor_lambda")
+    yield
+    sys.path.remove("src/sensor_lambda")
 
 
 def prepare_dynamodb(dynamodb, table_name: str, content: list[dict]):
@@ -115,7 +123,7 @@ def mock_env(mocked_dynamodb, mocked_sns, mocked_sqs):
             [{"sensor_id": {"S": "5"}, "working_ok": {"BOOL": False}}],
             [],  # expected_sns_messages
             [],  # expected_sqs_messages
-        )
+        ),
     ),
 )
 @freezegun.freeze_time(settings.TIME)
@@ -132,6 +140,7 @@ def test_sensor_lambda(
     mocked_dynamodb,
     mocked_sns,
     mocked_sqs,
+    source_root,
     mocker,
 ):
     mocker.patch.dict(os.environ, mock_env, clear=True)  # patch environment variables before importing handler

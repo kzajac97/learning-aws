@@ -1,8 +1,16 @@
+import sys
 import awswrangler as wr
 import pandas as pd
 import pytest
 
 from src.reporter_lambda.main import handler
+
+
+@pytest.fixture(scope="function")
+def source_root():
+    sys.path.append("src/reporter_lambda")
+    yield
+    sys.path.remove("src/reporter_lambda")
 
 
 @pytest.mark.parametrize(
@@ -89,7 +97,7 @@ def test_reporter_lambda_handler_from_event(event: dict, expected: dict, lambda_
         ),
     ),
 )
-def test_reporter_lambda_handler_from_s3(event: dict, key: str, expected: dict, lambda_context, mocked_s3):
+def test_reporter_lambda_handler_from_s3(event: dict, key: str, expected: dict, lambda_context, mocked_s3, source_root):
     data = event.pop("batch")
     event["batch"] = key
     wr.s3.to_csv(pd.DataFrame(data), key, index=False)
