@@ -12,8 +12,9 @@ class Context:
     sns_topic_arn: str
     sqs_url: str
     idempotency_table: str
-    dynamo_db_client: "boto3.client.dynamodb"
-    sqs_client: "boto3.client.sqs"
+    dynamodb: "boto3.client.dynamodb"
+    sns: "boto3.client.sns"
+    sqs: "boto3.client.sqs"
 
     @classmethod
     def from_dict(cls, env: dict):
@@ -28,8 +29,9 @@ class Context:
             sns_topic_arn=env["SNS_TOPIC_ARN"],
             sqs_url=env["SQS_URL"],
             idempotency_table=env["LAMBDA_IDEMPOTENCY_TABLE"],
-            dynamo_db_client=session.client("dynamodb", region_name=aws_region),
-            sqs_client=session.client("sqs", region_name=aws_region),
+            dynamodb=session.client("dynamodb", region_name=aws_region),
+            sns=session.client("sns", region_name=aws_region),
+            sqs=session.client("sqs", region_name=aws_region),
         )
 
 

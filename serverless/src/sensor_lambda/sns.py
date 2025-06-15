@@ -1,11 +1,10 @@
 import os
 
-import boto3
+from context import Context
 
 
-def notify(message: str):
-    client = boto3.client("sns")
-    client.publish(
+def notify(context: Context, message: str):
+    context.sns.publish(
         TopicArn=os.getenv("SNS_TOPIC_ARN"),
         Message=message,
         Subject="AWS Lab Error Alert",

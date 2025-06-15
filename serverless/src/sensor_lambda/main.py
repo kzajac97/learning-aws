@@ -28,7 +28,7 @@ def main(event: dict):
     `context` is initialized on module initialization, to be reused between execution environments.
     """
     logger.info(f"Received event: {event}")
-    sensor_registry = dynamodb.SensorRegistryClient(context.dynamo_db_client, table_name=context.sensor_registry_table)
+    sensor_registry = dynamodb.SensorRegistryClient(context.dynamodb, table_name=context.sensor_registry_table)
 
     sensor_id = str(event["sensor_id"])
     location_id = str(event["location_id"])
@@ -54,7 +54,7 @@ def main(event: dict):
 
     if status == sensor.SensorStatus.TEMPERATURE_CRITICAL:
         alert = f"Sensor {sensor_id} is in critical state with temperature {temperature} at {location_id}!"
-        sns.notify(message=alert)
+        sns.notify(context, message=alert)
 
     return {
         "status_code": 200,
