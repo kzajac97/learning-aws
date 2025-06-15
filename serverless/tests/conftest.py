@@ -38,6 +38,8 @@ def mocked_sns(mocked_aws):
     topic = sns.create_topic(Name=settings.TOPIC_NAME)
     topic_arn = topic["TopicArn"]
 
+    sns.subscribe(TopicArn=topic_arn, Protocol="email", Endpoint="test@example.com")
+
     yield sns, topic_arn
 
 
