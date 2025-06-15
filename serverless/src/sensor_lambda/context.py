@@ -18,9 +18,7 @@ class Context:
 
     @classmethod
     def from_dict(cls, env: dict):
-        aws_profile = env.get("AWS_PROFILE_NAME")  # for local use
         aws_region = env["AWS_REGION"]
-        session = boto3.Session(profile_name=aws_profile, region_name=aws_region)
 
         return cls(
             env=env["ENV"],
@@ -29,9 +27,9 @@ class Context:
             sns_topic_arn=env["SNS_TOPIC_ARN"],
             sqs_url=env["SQS_URL"],
             idempotency_table=env["LAMBDA_IDEMPOTENCY_TABLE"],
-            dynamodb=session.client("dynamodb", region_name=aws_region),
-            sns=session.client("sns", region_name=aws_region),
-            sqs=session.client("sqs", region_name=aws_region),
+            dynamodb=boto3.client("dynamodb", region_name=aws_region),
+            sns=boto3.client("sns", region_name=aws_region),
+            sqs=boto3.client("sqs", region_name=aws_region),
         )
 
 
