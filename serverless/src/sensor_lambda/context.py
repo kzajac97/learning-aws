@@ -19,6 +19,7 @@ class Context:
     @classmethod
     def from_dict(cls, env: dict):
         aws_region = env["AWS_REGION"]
+        print(aws_region)
 
         return cls(
             env=env["ENV"],

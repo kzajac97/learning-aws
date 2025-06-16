@@ -72,6 +72,7 @@ def mock_env(mocked_dynamodb, mocked_sns, mocked_sqs):
         "ENV": "test",
         "SENSOR_REGISTRY_TABLE": settings.SENSOR_REGISTRY_TABLE,
         "AWS_REGION": settings.TEST_AWS_REGION,
+        "AWS_DEFAULT_REGION": settings.TEST_AWS_REGION,
         "AWS_PROFILE_NAME": settings.TEST_AWS_PROFILE_NAME,
         "LAMBDA_IDEMPOTENCY_TABLE": settings.IDEMPOTENCY_TABLE,
         "SNS_TOPIC_ARN": topic_arn,
@@ -211,7 +212,7 @@ def test_sensor_lambda(
     source_root,
     mocker,
 ):
-    mocker.patch.dict(os.environ, mock_env, clear=True)  # patch environment variables before importing handler
+    mocker.patch.dict(os.environ, mock_env)  # patch environment variables before importing handler
     prepare_dynamodb(mocked_dynamodb, settings.SENSOR_REGISTRY_TABLE, dynamodb_content)
 
     from src.sensor_lambda.main import main
