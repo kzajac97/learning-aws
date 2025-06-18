@@ -1,7 +1,7 @@
 import json
 from datetime import datetime as dt
 
-from context import Context, SensorStatus
+from sensor import Context, SensorStatus
 
 
 def send_message(
@@ -19,4 +19,4 @@ def send_message(
         "timestamp": dt.now().isoformat(),
     }
 
-    context.sqs_client.send_message(QueueUrl=context.sqs_url, MessageBody=json.dumps(message))
+    context.sqs.send_message(QueueUrl=context.sqs_url, MessageBody=json.dumps(message))

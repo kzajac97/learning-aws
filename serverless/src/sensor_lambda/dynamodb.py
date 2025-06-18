@@ -1,8 +1,9 @@
+import boto3
 from botocore.exceptions import ClientError
 
 
 class SensorRegistryClient:
-    def __init__(self, client, table_name: str):
+    def __init__(self, client: "boto3.client.dynamodb", table_name: str):
         self.client = client
         self.table_name = table_name
 

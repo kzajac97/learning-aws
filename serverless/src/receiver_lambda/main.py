@@ -1,13 +1,15 @@
 import enum
 import json
 import os
-from typing import Any
 
 import awswrangler as wr
 import pandas as pd
 from aws_lambda_powertools import Logger
 
-from context import Context
+from typing import Any
+
+from receiver import Context
+
 
 logger = Logger("receiver_lambda")
 context = Context.from_dict(dict(os.environ))
