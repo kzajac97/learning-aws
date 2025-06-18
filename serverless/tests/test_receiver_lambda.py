@@ -1,5 +1,4 @@
 import json
-import sys
 import os
 import random
 from datetime import datetime, timedelta
@@ -10,13 +9,6 @@ import pandas as pd
 import pytest
 
 from tests import settings
-
-
-@pytest.fixture(scope="function")
-def source_root():
-    sys.path.append("src/receiver_lambda")
-    yield
-    sys.path.remove("src/receiver_lambda")
 
 
 def random_date():
@@ -81,9 +73,7 @@ def mock_env(mocked_sqs):
         (100, 20),
     ),
 )
-def test_receiver_lambda_handler_s3(
-    num_rows: int, num_locations: int, mock_env, mocked_s3, lambda_context, source_root, mocker
-):
+def test_receiver_lambda_handler_s3(num_rows: int, num_locations: int, mock_env, mocked_s3, lambda_context, mocker):
     mocker.patch.dict(os.environ, mock_env, clear=True)  # patch environment variables before importing handler
     prepare_s3_input(num_locations, num_rows)
 
@@ -106,9 +96,7 @@ def test_receiver_lambda_handler_s3(
         (1000, 100),
     ),
 )
-def test_receiver_lambda_handler_sqs(
-    num_rows: int, num_locations: int, mock_env, mocked_sqs, lambda_context, source_root, mocker
-):
+def test_receiver_lambda_handler_sqs(num_rows: int, num_locations: int, mock_env, mocked_sqs, lambda_context, mocker):
     mocker.patch.dict(os.environ, mock_env, clear=True)  # patch environment variables before importing handler
     prepare_sqs_input(num_locations, num_rows)
 

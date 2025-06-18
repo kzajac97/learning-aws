@@ -6,13 +6,12 @@ import dynamodb
 import sensor
 import sns
 import sqs
-from context import Context
 from aws_lambda_powertools import Logger
 from aws_lambda_powertools.utilities.idempotency import DynamoDBPersistenceLayer, idempotent
 
 
 logger = Logger("sensor_lambda")
-context = Context.from_dict(dict(os.environ))
+context = sensor.Context.from_dict(dict(os.environ))
 persistence_store = DynamoDBPersistenceLayer(table_name=context.idempotency_table)
 
 

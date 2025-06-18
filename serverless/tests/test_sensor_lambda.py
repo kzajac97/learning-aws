@@ -1,19 +1,11 @@
 import os
 import json
-import sys
 from typing import Any
 
 import freezegun
 import pytest
 
 from tests import settings
-
-
-@pytest.fixture(scope="function")
-def source_root():
-    sys.path.append("src/sensor_lambda")
-    yield
-    sys.path.remove("src/sensor_lambda")
 
 
 def prepare_dynamodb(dynamodb, table_name: str, content: list[dict]):
@@ -72,7 +64,7 @@ def mock_env(mocked_dynamodb, mocked_sns, mocked_sqs):
         "ENV": "test",
         "SENSOR_REGISTRY_TABLE": settings.SENSOR_REGISTRY_TABLE,
         "AWS_REGION": settings.TEST_AWS_REGION,
-        "AWS_DEFAULT_REGION": settings.TEST_AWS_REGION,
+        "AWS_DEFAULT_REGION": settings.TEST_AWS_REGION,  # for boto3 compatibility
         "AWS_PROFILE_NAME": settings.TEST_AWS_PROFILE_NAME,
         "LAMBDA_IDEMPOTENCY_TABLE": settings.IDEMPOTENCY_TABLE,
         "SNS_TOPIC_ARN": topic_arn,
@@ -141,14 +133,15 @@ def mock_env(mocked_dynamodb, mocked_sns, mocked_sqs):
             {"sensor_id": "6", "location_id": "A", "value": 15_000},  # event
             None,  # empty dynamodb_content
             200,
-            {"sensor_id": "6", "location_id": "A", "status": "TEMPERATURE_TOO_LOW", "timestamp": "2025-01-01T00:00:00"},
+            {"sensor_id": "6", "location_id": "A", "status": "TEMPERATURE_TOO_LOW", "timestamp": settings.TIME},
             [{"sensor_id": {"S": "6"}, "working_ok": {"BOOL": True}}],  # expected_dynamodb_content
+            # sqs message
             [
                 {
                     "sensor_id": "6",
                     "location_id": "A",
                     "status": "TEMPERATURE_TOO_LOW",
-                    "timestamp": "2025-01-01T00:00:00",
+                    "timestamp": settings.TIME,
                 }
             ],
         ),
@@ -161,17 +154,18 @@ def mock_env(mocked_dynamodb, mocked_sns, mocked_sqs):
                 "sensor_id": "7",
                 "location_id": "A",
                 "status": "TEMPERATURE_TOO_HIGH",
-                "timestamp": "2025-01-01T00:00:00",
+                "timestamp": settings.TIME,
             },
             [{"sensor_id": {"S": "7"}, "working_ok": {"BOOL": True}}],  # expected_dynamodb_content
+            # sqs message
             [
                 {
                     "sensor_id": "7",
                     "location_id": "A",
                     "status": "TEMPERATURE_TOO_HIGH",
-                    "timestamp": "2025-01-01T00:00:00",
+                    "timestamp": settings.TIME,
                 }
-            ],  # fmt: off
+            ],
         ),
         # test case 8: temperature critical with new sensor
         (
@@ -182,15 +176,16 @@ def mock_env(mocked_dynamodb, mocked_sns, mocked_sqs):
                 "sensor_id": "8",
                 "location_id": "A",
                 "status": "TEMPERATURE_CRITICAL",
-                "timestamp": "2025-01-01T00:00:00",
+                "timestamp": settings.TIME,
             },
             [{"sensor_id": {"S": "8"}, "working_ok": {"BOOL": True}}],  # expected_dynamodb_content
+            # sqs message
             [
                 {
                     "sensor_id": "8",
                     "location_id": "A",
                     "status": "TEMPERATURE_CRITICAL",
-                    "timestamp": "2025-01-01T00:00:00",
+                    "timestamp": settings.TIME,
                 }
             ],
         ),
@@ -209,7 +204,6 @@ def test_sensor_lambda(
     mocked_dynamodb,
     mocked_sns,
     mocked_sqs,
-    source_root,
     mocker,
 ):
     mocker.patch.dict(os.environ, mock_env)  # patch environment variables before importing handler

@@ -1,7 +1,7 @@
 import json
 from datetime import datetime as dt
 
-from context import Context, SensorStatus
+from sensor import Context, SensorStatus
 
 
 def send_message(

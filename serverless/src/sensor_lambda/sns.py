@@ -1,6 +1,6 @@
 import os
 
-from context import Context
+from sensor import Context
 
 
 def notify(context: Context, message: str):
